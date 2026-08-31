@@ -48,12 +48,17 @@ C++ and Python speaking decisions agreed on 100% of 1,604 parity frames. See
 
 ## Requirements
 
-- Ubuntu 24.04 or comparable Linux
-- Python 3.12
+- Linux x86_64 (tested on Ubuntu 24.04)
+- Python 3.12 for the provided CUDA build script
 - FFmpeg
 - OpenCV development libraries
 - CMake and a C++17 compiler
 - NVIDIA GPU and compatible driver for CUDA
+
+Ubuntu 24.04 is not mandatory. Other Linux distributions should work when they
+provide compatible PyTorch/LibTorch, OpenCV, FFmpeg, compiler, and CUDA runtime
+versions. The current `cpp/build_cuda.sh` contains the Python 3.12
+`site-packages` path, so adjust that path when using another Python version.
 
 ```bash
 python3 -m venv .venv
