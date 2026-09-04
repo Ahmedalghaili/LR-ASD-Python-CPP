@@ -8,8 +8,17 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <vector>
 
 class LRASDEngine;
+
+struct LRASDPrediction
+{
+    int trackId;
+    float logit;
+    bool speaking;
+    cv::Rect faceBox;
+};
 
 class LRASDWorker
 {
@@ -21,6 +30,7 @@ public:
 
     bool start(const std::string &modelDirectory);
     void submit(VABuffer snapshot);
+    std::vector<LRASDPrediction> latestPredictions() const;
     void stop();
 
 private:
@@ -31,4 +41,6 @@ private:
     std::mutex inputMutex_;
     std::condition_variable inputReady_;
     std::optional<VABuffer> pendingInput_;
+    mutable std::mutex predictionMutex_;
+    std::vector<LRASDPrediction> latestPredictions_;
 };

@@ -994,7 +994,31 @@ void MainWindow::timer_event()
         // problem to update the window?
         if (msetting.bShowPreviewWindow)
         {
-            cv::imshow("Image", thread_process_image.getOutFrame());
+            cv::Mat preview = thread_process_image.getOutFrame();
+            if (mLRASDWorker && !preview.empty())
+            {
+                for (const LRASDPrediction &prediction :
+                     mLRASDWorker->latestPredictions())
+                {
+                    const cv::Rect imageBounds(0, 0, preview.cols, preview.rows);
+                    const cv::Rect faceBox = prediction.faceBox & imageBounds;
+                    const cv::Scalar color = prediction.speaking
+                                                 ? cv::Scalar(0, 255, 0)
+                                                 : cv::Scalar(0, 0, 255);
+                    if (!faceBox.empty())
+                        cv::rectangle(preview, faceBox, color, 3);
+                    const std::string label =
+                        "LR-ASD track " + std::to_string(prediction.trackId) +
+                        (prediction.speaking ? " SPEAKING " : " SILENT ") +
+                        cv::format("%.3f", prediction.logit);
+                    const cv::Point labelPosition(
+                        std::max(0, faceBox.x), std::max(25, faceBox.y - 8));
+                    cv::putText(preview, label, labelPosition,
+                                cv::FONT_HERSHEY_SIMPLEX, 0.7, color, 2,
+                                cv::LINE_AA);
+                }
+            }
+            cv::imshow("Image", preview);
             cv::waitKey(1); // I miss this line so that Ubuntu does not update
                             // the window.
         }

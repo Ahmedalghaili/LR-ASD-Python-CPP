@@ -109,11 +109,13 @@ public:
           asd_(env_,modelPath(directory,"lr_asd.onnx").c_str(),options_),
           detector_(env_,modelPath(directory,"s3fd_270x480.onnx").c_str(),options_) {}
 
-    void process(const std::vector<cv::Mat> &frames, const std::vector<float> &audio)
+    std::vector<LRASDPrediction> process(const std::vector<cv::Mat> &frames,
+                                         const std::vector<float> &audio)
     {
         const auto started=Clock::now();
         for (const cv::Mat &frame : frames) updateTracks(frame);
-        if (audio.size()<3440 || tracks_.empty()) return;
+        std::vector<LRASDPrediction> predictions;
+        if (audio.size()<3440 || tracks_.empty()) return predictions;
         for (auto &[id, track] : tracks_) {
             const int count=std::min<int>(25,track.faces.size());
             if (count<5) continue;
@@ -135,6 +137,12 @@ public:
             auto output=asd_.Run(Ort::RunOptions{nullptr},inputNames,inputs.data(),2,outputNames,1);
             const float *logits=output[0].GetTensorData<float>();
             track.score=logits[(count-1)*2+1];
+            const int x1=std::max(0,static_cast<int>(std::lround(track.box.x1)));
+            const int y1=std::max(0,static_cast<int>(std::lround(track.box.y1)));
+            const int x2=std::max(x1+1,static_cast<int>(std::lround(track.box.x2)));
+            const int y2=std::max(y1+1,static_cast<int>(std::lround(track.box.y2)));
+            predictions.push_back({id,track.score,track.score>=0,
+                                   cv::Rect(x1,y1,x2-x1,y2-y1)});
             std::cout << "{\"component\":\"LR-ASD\",\"track\":" << id
                       << ",\"class1_logit\":" << std::fixed << std::setprecision(3) << track.score
                       << ",\"speaking\":" << (track.score>=0 ? "true" : "false")
@@ -145,6 +153,7 @@ public:
         if (calls_%50==0)
             std::cout << "{\"component\":\"LR-ASD-performance\",\"mean_update_ms\":"
                       << latencyMs_/calls_ << ",\"updates\":" << calls_ << "}" << std::endl;
+        return predictions;
     }
 
 private:
@@ -244,6 +253,12 @@ void LRASDWorker::submit(VABuffer snapshot)
     inputReady_.notify_one();
 }
 
+std::vector<LRASDPrediction> LRASDWorker::latestPredictions() const
+{
+    std::lock_guard lock(predictionMutex_);
+    return latestPredictions_;
+}
+
 void LRASDWorker::run()
 {
     const unsigned char *lastFrameData=nullptr;
@@ -272,7 +287,11 @@ void LRASDWorker::run()
             audio.push_back(static_cast<float>(snapshot.AudioSignal.front()));
             snapshot.AudioSignal.pop();
         }
-        try { engine_->process(frames,audio); }
+        try {
+            auto predictions=engine_->process(frames,audio);
+            std::lock_guard lock(predictionMutex_);
+            latestPredictions_=std::move(predictions);
+        }
         catch(const std::exception &e) { std::cerr << "LR-ASD update failed: " << e.what() << '\n'; }
     }
 }
