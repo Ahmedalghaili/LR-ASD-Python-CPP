@@ -749,7 +749,8 @@ void ThreadProcessImage::run()
                         auto elapsed_no_person =
                             std::chrono::duration_cast<std::chrono::milliseconds>(now - m_LastPersonDetectedTime)
                                 .count();
-                        if (elapsed_no_person >= 1000 && !m_bBodyAtZero)
+                        if (action_option.bUseVisualCompass &&
+                            elapsed_no_person >= 1000 && !m_bBodyAtZero)
                         {
                             m_bTurningToZero = true;
                             auto elapsed_compass =
