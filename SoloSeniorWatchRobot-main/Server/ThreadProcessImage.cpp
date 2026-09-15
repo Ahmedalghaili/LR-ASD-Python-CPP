@@ -283,6 +283,10 @@ void ThreadProcessImage::run()
 
                 // Draw Pose landmarks
                 mtx_UpdateOutFrame.lock();
+                // Publish the raw camera image even when pose, hand, and face
+                // visualization are all disabled in the settings file.
+                inputImage.copyTo(outFrame);
+                bNewoutFrame = true;
                 // ToDo: remove this variable.
                 // if( b_HumanPoseEstimation)
                 if (mpsetting->bHumanPoseEstimation)
@@ -841,6 +845,7 @@ Mat ThreadProcessImage::getOutFrame()
     if (bNewoutFrame)
     {
         outFrame.copyTo(frame);
+        bNewoutFrame = false;
     }
     mtx_UpdateOutFrame.unlock();
     return frame;

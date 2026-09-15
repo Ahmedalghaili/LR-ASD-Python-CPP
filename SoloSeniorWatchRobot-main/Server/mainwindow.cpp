@@ -984,7 +984,8 @@ void MainWindow::on_pushButton_killapp_clicked()
 
 void MainWindow::timer_event()
 {
-    if (thread_process_image.bNewoutFrame)
+    cv::Mat preview = thread_process_image.getOutFrame();
+    if (!preview.empty())
     {
         // 2024/12/30, Debug info: I use a timer to update the frame. On some
         // low-end PC, although I call imshow, the window does not refresh
@@ -994,7 +995,6 @@ void MainWindow::timer_event()
         // problem to update the window?
         if (msetting.bShowPreviewWindow)
         {
-            cv::Mat preview = thread_process_image.getOutFrame();
             if (mLRASDWorker && !preview.empty())
             {
                 for (const LRASDPrediction &prediction :
@@ -1022,7 +1022,6 @@ void MainWindow::timer_event()
             cv::waitKey(1); // I miss this line so that Ubuntu does not update
                             // the window.
         }
-        thread_process_image.bNewoutFrame = false;
         // update pitch and yaw
         ui->lineEdit_yaw_now->setText(QString::number(robot_status.yaw_degree));
         ui->lineEdit_pitch_now->setText(

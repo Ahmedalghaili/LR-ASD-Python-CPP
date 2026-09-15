@@ -42,7 +42,7 @@ def main():
                         audioPath     = os.path.join(args.audioPathAVA , args.evalDataType), \
                         visualPath    = os.path.join(args.visualPathAVA, args.evalDataType), \
                         **vars(args))
-    valLoader = torch.utils.data.DataLoader(loader, batch_size = 1, shuffle = False, num_workers = 64, pin_memory = True)
+    valLoader = torch.utils.data.DataLoader(loader, batch_size = 1, shuffle = False, num_workers = args.nDataLoaderThread, pin_memory = True)
 
     if args.evaluation == True:
         s = ASD(**vars(args))
@@ -54,7 +54,17 @@ def main():
 
     modelfiles = glob.glob('%s/model_0*.model'%args.modelSavePath)
     modelfiles.sort()  
-    if len(modelfiles) >= 1:
+    resumePath = os.path.join(args.savePath, 'training_state.pt')
+    resumeState = None
+    if os.path.exists(resumePath):
+        resumeState = torch.load(resumePath, map_location='cpu', weights_only=False)
+        epoch = resumeState['next_epoch']
+        s = ASD(epoch=epoch, **vars(args))
+        s.load_state_dict(resumeState['model'])
+        s.optim.load_state_dict(resumeState['optimizer'])
+        s.scheduler.load_state_dict(resumeState['scheduler'])
+        print('Resumed model and optimizer at epoch %d' % epoch)
+    elif len(modelfiles) >= 1:
         print("Model %s loaded from previous state!"%modelfiles[-1])
         epoch = int(os.path.splitext(os.path.basename(modelfiles[-1]))[0][6:]) + 1
         s = ASD(epoch = epoch, **vars(args))
@@ -63,7 +73,10 @@ def main():
         epoch = 1
         s = ASD(epoch = epoch, **vars(args))
 
-    mAPs = []
+    mAPs = resumeState.get('mAPs', []) if resumeState else []
+    if epoch > args.maxEpoch:
+        print('Requested training epochs are already complete.')
+        return
     scoreFile = open(args.scoreSavePath, "a+")
 
     while(1):        
@@ -75,6 +88,12 @@ def main():
             print(time.strftime("%Y-%m-%d %H:%M:%S"), "%d epoch, mAP %2.2f%%, bestmAP %2.2f%%"%(epoch, mAPs[-1], max(mAPs)))
             scoreFile.write("%d epoch, LR %f, LOSS %f, mAP %2.2f%%, bestmAP %2.2f%%\n"%(epoch, lr, loss, mAPs[-1], max(mAPs)))
             scoreFile.flush()
+
+        temporary = resumePath + '.tmp'
+        torch.save({'next_epoch': epoch + 1, 'model': s.state_dict(),
+                    'optimizer': s.optim.state_dict(), 'scheduler': s.scheduler.state_dict(),
+                    'mAPs': mAPs}, temporary)
+        os.replace(temporary, resumePath)
 
         if epoch >= args.maxEpoch:
             quit()

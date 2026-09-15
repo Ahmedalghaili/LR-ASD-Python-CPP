@@ -13,7 +13,10 @@ def generate_audio_set(dataPath, batchList):
     return audioSet
 
 def overlap(dataName, audio, audioSet):   
-    noiseName =  random.sample(set(list(audioSet.keys())) - {dataName}, 1)[0]
+    candidates = [name for name in audioSet if name != dataName]
+    if not candidates:
+        return audio
+    noiseName = random.choice(candidates)
     noiseAudio = audioSet[noiseName]    
     snr = [random.uniform(-5, 5)]
     if len(noiseAudio) < len(audio):

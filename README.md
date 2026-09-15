@@ -130,6 +130,12 @@ Add `LR_ASD_PACE=1` for a paced 25 FPS test. The S3FD model name must match
 `round(height * 0.25)` x `round(width * 0.25)`. Add new shapes in
 `cpp/export_torchscript.py` when testing a different resolution.
 
+## Detector speed experiment
+
+See [the SCRFD C++ experiment](experiments/scrfd_cpp/README.md) for a separate
+selectable S3FD/SCRFD executable, reproducible benchmarks, annotated videos,
+and measured speed and speaking-decision comparisons.
+
 ## Datasets
 
 No dataset is uploaded. See [dataset instructions](docs/DATASETS.md) for official

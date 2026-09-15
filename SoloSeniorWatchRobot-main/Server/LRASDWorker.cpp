@@ -1,9 +1,11 @@
 #include "LRASDWorker.hpp"
+#include "SCRFDDetector.hpp"
 
 #include <onnxruntime_cxx_api.h>
 #include <opencv2/imgproc.hpp>
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <cmath>
 #include <deque>
 #include <iomanip>
@@ -106,8 +108,28 @@ class LRASDEngine
 public:
     explicit LRASDEngine(const std::string &directory)
         : env_(ORT_LOGGING_LEVEL_WARNING,"LR-ASD"), options_(makeOptions()),
-          asd_(env_,modelPath(directory,"lr_asd.onnx").c_str(),options_),
-          detector_(env_,modelPath(directory,"s3fd_270x480.onnx").c_str(),options_) {}
+          asd_(env_,modelPath(directory,"lr_asd.onnx").c_str(),options_)
+    {
+        const char *configuredDetector = std::getenv("LR_ASD_DETECTOR");
+        detectorName_ = configuredDetector && *configuredDetector ? configuredDetector : "s3fd";
+        if (detectorName_ == "scrfd") {
+            const char *configuredModel = std::getenv("LR_ASD_SCRFD_MODEL");
+            const std::string model = configuredModel && *configuredModel
+                ? configuredModel
+                : modelPath(directory,"scrfd_2.5g_bnkps.dynamic.onnx");
+            scrfd_ = std::make_unique<SCRFDDetector>(env_, model);
+            std::cout << "LR-ASD face detector: SCRFD (" << model << ")\n";
+        } else if (detectorName_ == "s3fd") {
+            const char *configuredModel = std::getenv("LR_ASD_S3FD_MODEL");
+            const std::string model = configuredModel && *configuredModel
+                ? configuredModel
+                : modelPath(directory,"s3fd_270x480.onnx");
+            detector_ = std::make_unique<Ort::Session>(env_, model.c_str(), options_);
+            std::cout << "LR-ASD face detector: S3FD (" << model << ")\n";
+        } else {
+            throw std::runtime_error("LR_ASD_DETECTOR must be 's3fd' or 'scrfd'");
+        }
+    }
 
     std::vector<LRASDPrediction> process(const std::vector<cv::Mat> &frames,
                                          const std::vector<float> &audio)
@@ -171,6 +193,13 @@ private:
 
     std::vector<Box> detect(const cv::Mat &frame)
     {
+        if (scrfd_) {
+            std::vector<Box> boxes;
+            for (const auto &box : scrfd_->detect(frame))
+                boxes.push_back({box.x1, box.y1, box.x2, box.y2, box.confidence});
+            return boxes;
+        }
+
         cv::Mat resized,rgb; cv::resize(frame,resized,{480,270}); cv::cvtColor(resized,rgb,cv::COLOR_BGR2RGB);
         std::vector<float> data(3*270*480); const float mean[]={123,117,104};
         for (int c=0;c<3;++c) for(int y=0;y<270;++y) for(int x=0;x<480;++x)
@@ -179,7 +208,7 @@ private:
         auto mem=Ort::MemoryInfo::CreateCpu(OrtArenaAllocator,OrtMemTypeDefault);
         auto tensor=Ort::Value::CreateTensor<float>(mem,data.data(),data.size(),shape.data(),shape.size());
         const char *inputs[]={"image"}, *outputs[]={"loc","conf"};
-        auto values=detector_.Run(Ort::RunOptions{nullptr},inputs,&tensor,1,outputs,2);
+        auto values=detector_->Run(Ort::RunOptions{nullptr},inputs,&tensor,1,outputs,2);
         const float *loc=values[0].GetTensorData<float>(), *conf=values[1].GetTensorData<float>();
         const int steps[]={4,8,16,32,64,128}, mins[]={16,32,64,128,256,512};
         int heights[6], widths[6]; heights[0]=270/4; widths[0]=480/4;
@@ -221,7 +250,10 @@ private:
         }
     }
 
-    Ort::Env env_; Ort::SessionOptions options_; Ort::Session asd_; Ort::Session detector_;
+    Ort::Env env_; Ort::SessionOptions options_; Ort::Session asd_;
+    std::unique_ptr<Ort::Session> detector_;
+    std::unique_ptr<SCRFDDetector> scrfd_;
+    std::string detectorName_;
     std::map<int,Track> tracks_; int nextTrack_=0; std::uint64_t calls_=0; double latencyMs_=0;
 };
 
