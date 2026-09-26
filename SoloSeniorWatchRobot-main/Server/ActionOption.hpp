@@ -10,7 +10,9 @@ struct ActionOption
         MOVE_HEAD = 2,
     };
 
-    MOVE_MODE move_mode;
+    // Manual is the safe default: automatic tracking must be selected
+    // explicitly before it is allowed to move the robot.
+    MOVE_MODE move_mode = MOVE_MANUAL;
     bool bUseVisualCompass = false;
 };
 

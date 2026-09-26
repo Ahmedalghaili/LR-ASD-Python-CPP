@@ -2,16 +2,22 @@
 #include "SCRFDDetector.hpp"
 
 #include <onnxruntime_cxx_api.h>
+#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <array>
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <cmath>
 #include <deque>
 #include <iomanip>
+#include <limits>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <numeric>
+#include <stdexcept>
+#include <string>
 #include <vector>
 
 using Clock = std::chrono::steady_clock;
@@ -46,16 +52,19 @@ std::vector<float> mfcc(const std::vector<float> &input)
         bins[i]=static_cast<int>(std::floor((nfft+1)*melToHz(low+(high-low)*i/(filters+1))/sampleRate));
     std::vector<float> output(frameCount*cepstra);
     const double pi=std::acos(-1.0), eps=std::numeric_limits<double>::epsilon();
+    cv::Mat fftInput(1, nfft, CV_32F), spectrum;
     for (int n=0; n<frameCount; ++n) {
+        fftInput.setTo(0.0f);
+        for (int j=0; j<win; ++j)
+            fftInput.at<float>(0,j)=x[n*step+j];
+        // OpenCV's optimized DFT replaces the previous O(N^2) nested loop.
+        cv::dft(fftInput, spectrum, cv::DFT_COMPLEX_OUTPUT);
+
         std::vector<double> power(nfft/2+1), bank(filters);
         double energy=0;
         for (int k=0; k<=nfft/2; ++k) {
-            double re=0, im=0;
-            for (int j=0; j<win; ++j) {
-                const double value=x[n*step+j];
-                re += value*std::cos(2*pi*k*j/nfft);
-                im -= value*std::sin(2*pi*k*j/nfft);
-            }
+            const cv::Vec2f value=spectrum.at<cv::Vec2f>(0,k);
+            const double re=value[0], im=value[1];
             power[k]=(re*re+im*im)/nfft; energy += power[k];
         }
         for (int m=1; m<=filters; ++m) {
@@ -110,6 +119,8 @@ public:
         : env_(ORT_LOGGING_LEVEL_WARNING,"LR-ASD"), options_(makeOptions()),
           asd_(env_,modelPath(directory,"lr_asd.onnx").c_str(),options_)
     {
+        const char *verbose = std::getenv("LR_ASD_VERBOSE_LOG");
+        verboseLog_ = verbose && std::string(verbose) == "1";
         const char *configuredDetector = std::getenv("LR_ASD_DETECTOR");
         detectorName_ = configuredDetector && *configuredDetector ? configuredDetector : "s3fd";
         if (detectorName_ == "scrfd") {
@@ -129,46 +140,66 @@ public:
         } else {
             throw std::runtime_error("LR_ASD_DETECTOR must be 's3fd' or 'scrfd'");
         }
+        warmup();
     }
 
     std::vector<LRASDPrediction> process(const std::vector<cv::Mat> &frames,
-                                         const std::vector<float> &audio)
+                                         const std::vector<float> &audio,
+                                         int temporalRepeats)
     {
         const auto started=Clock::now();
-        for (const cv::Mat &frame : frames) updateTracks(frame);
+        if (!frames.empty()) {
+            // Run detection only on the newest frame in this snapshot. The
+            // older queued frames are not redetected because they are already
+            // stale by the time this worker receives them.
+            updateTracks(frames.back(), std::max(1, temporalRepeats));
+        }
         std::vector<LRASDPrediction> predictions;
         if (audio.size()<3440 || tracks_.empty()) return predictions;
+        const bool runInference = (++processes_ % 2) == 0;
+        std::vector<float> allFeatures;
+        Ort::MemoryInfo mem(Ort::MemoryInfo::CreateCpu(OrtArenaAllocator,OrtMemTypeDefault));
+        if (runInference) {
+            const size_t maxNeeded=std::min(audio.size(),static_cast<size_t>(25*640+240));
+            const std::vector<float> segment(audio.end()-maxNeeded,audio.end());
+            allFeatures=mfcc(segment);
+        }
         for (auto &[id, track] : tracks_) {
+            // Keep a missing track briefly for identity recovery, but do not
+            // classify or draw its old box on the current camera frame.
+            if (track.missed != 0) continue;
             const int count=std::min<int>(25,track.faces.size());
             if (count<5) continue;
             const size_t needed=count*640+240;
             if (audio.size()<needed) continue;
-            std::vector<float> segment(audio.end()-needed,audio.end());
-            std::vector<float> features=mfcc(segment), visual;
-            if (features.size()!=static_cast<size_t>(count*4*13)) continue;
-            visual.reserve(count*112*112);
-            for (int i=track.faces.size()-count; i<static_cast<int>(track.faces.size()); ++i)
-                visual.insert(visual.end(),track.faces[i].begin(),track.faces[i].end());
-            std::array<int64_t,3> audioShape{1,count*4,13};
-            std::array<int64_t,4> videoShape{1,count,112,112};
-            auto mem=Ort::MemoryInfo::CreateCpu(OrtArenaAllocator,OrtMemTypeDefault);
-            std::array<Ort::Value,2> inputs{
-                Ort::Value::CreateTensor<float>(mem,features.data(),features.size(),audioShape.data(),audioShape.size()),
-                Ort::Value::CreateTensor<float>(mem,visual.data(),visual.size(),videoShape.data(),videoShape.size())};
-            const char *inputNames[]={"audio","visual"}, *outputNames[]={"logits"};
-            auto output=asd_.Run(Ort::RunOptions{nullptr},inputNames,inputs.data(),2,outputNames,1);
-            const float *logits=output[0].GetTensorData<float>();
-            track.score=logits[(count-1)*2+1];
+            if (runInference) {
+                const size_t featureValues=static_cast<size_t>(count*4*13);
+                if (allFeatures.size()<featureValues) continue;
+                std::vector<float> features(allFeatures.end()-featureValues,allFeatures.end()), visual;
+                visual.reserve(count*112*112);
+                for (int i=track.faces.size()-count; i<static_cast<int>(track.faces.size()); ++i)
+                    visual.insert(visual.end(),track.faces[i].begin(),track.faces[i].end());
+                std::array<int64_t,3> audioShape{1,count*4,13};
+                std::array<int64_t,4> videoShape{1,count,112,112};
+                std::array<Ort::Value,2> inputs{
+                    Ort::Value::CreateTensor<float>(mem,features.data(),features.size(),audioShape.data(),audioShape.size()),
+                    Ort::Value::CreateTensor<float>(mem,visual.data(),visual.size(),videoShape.data(),videoShape.size())};
+                const char *inputNames[]={"audio","visual"}, *outputNames[]={"logits"};
+                auto output=asd_.Run(Ort::RunOptions{nullptr},inputNames,inputs.data(),2,outputNames,1);
+                const float *logits=output[0].GetTensorData<float>();
+                track.score=logits[(count-1)*2+1];
+            }
             const int x1=std::max(0,static_cast<int>(std::lround(track.box.x1)));
             const int y1=std::max(0,static_cast<int>(std::lround(track.box.y1)));
             const int x2=std::max(x1+1,static_cast<int>(std::lround(track.box.x2)));
             const int y2=std::max(y1+1,static_cast<int>(std::lround(track.box.y2)));
             predictions.push_back({id,track.score,track.score>=0,
                                    cv::Rect(x1,y1,x2-x1,y2-y1)});
-            std::cout << "{\"component\":\"LR-ASD\",\"track\":" << id
-                      << ",\"class1_logit\":" << std::fixed << std::setprecision(3) << track.score
-                      << ",\"speaking\":" << (track.score>=0 ? "true" : "false")
-                      << ",\"window_frames\":" << count << "}" << std::endl;
+            if (verboseLog_)
+                std::cout << "{\"component\":\"LR-ASD\",\"track\":" << id
+                          << ",\"class1_logit\":" << std::fixed << std::setprecision(3) << track.score
+                          << ",\"speaking\":" << (track.score>=0 ? "true" : "false")
+                          << ",\"window_frames\":" << count << "}" << std::endl;
         }
         ++calls_;
         latencyMs_ += std::chrono::duration<double,std::milli>(Clock::now()-started).count();
@@ -179,6 +210,24 @@ public:
     }
 
 private:
+    void warmup()
+    {
+        cv::Mat dummy(270,480,CV_8UC3,cv::Scalar(0,0,0));
+        detect(dummy);
+        auto mem=Ort::MemoryInfo::CreateCpu(OrtArenaAllocator,OrtMemTypeDefault);
+        const char *inputNames[]={"audio","visual"}, *outputNames[]={"logits"};
+        for (int count : {5,10,15,20,25}) {
+            std::vector<float> audio(static_cast<size_t>(count*4*13),0.0f);
+            std::vector<float> visual(static_cast<size_t>(count*112*112),0.0f);
+            std::array<int64_t,3> audioShape{1,count*4,13};
+            std::array<int64_t,4> videoShape{1,count,112,112};
+            std::array<Ort::Value,2> inputs{
+                Ort::Value::CreateTensor<float>(mem,audio.data(),audio.size(),audioShape.data(),audioShape.size()),
+                Ort::Value::CreateTensor<float>(mem,visual.data(),visual.size(),videoShape.data(),videoShape.size())};
+            asd_.Run(Ort::RunOptions{nullptr},inputNames,inputs.data(),2,outputNames,1);
+        }
+    }
+
     static Ort::SessionOptions makeOptions()
     {
         Ort::SessionOptions options;
@@ -200,10 +249,12 @@ private:
             return boxes;
         }
 
-        cv::Mat resized,rgb; cv::resize(frame,resized,{480,270}); cv::cvtColor(resized,rgb,cv::COLOR_BGR2RGB);
+        cv::Mat resized; cv::resize(frame,resized,{480,270});
+        // Python S3FD reverses BGR to RGB, subtracts [104,117,123], then
+        // reverses back. The actual model input is BGR - [123,117,104].
         std::vector<float> data(3*270*480); const float mean[]={123,117,104};
         for (int c=0;c<3;++c) for(int y=0;y<270;++y) for(int x=0;x<480;++x)
-            data[c*270*480+y*480+x]=rgb.at<cv::Vec3b>(y,x)[c]-mean[c];
+            data[c*270*480+y*480+x]=resized.at<cv::Vec3b>(y,x)[c]-mean[c];
         std::array<int64_t,4> shape{1,3,270,480};
         auto mem=Ort::MemoryInfo::CreateCpu(OrtArenaAllocator,OrtMemTypeDefault);
         auto tensor=Ort::Value::CreateTensor<float>(mem,data.data(),data.size(),shape.data(),shape.size());
@@ -230,7 +281,7 @@ private:
         return kept;
     }
 
-    void updateTracks(const cv::Mat &frame)
+    void updateTracks(const cv::Mat &frame, int temporalRepeats)
     {
         auto boxes=detect(frame); std::vector<int> available,assigned;
         for(auto &[id,track]:tracks_) available.push_back(id);
@@ -239,8 +290,14 @@ private:
             for(int candidate:available) { float value=iou(box,tracks_[candidate].box); if(value>best){best=value;id=candidate;} }
             if(best<.3f){id=nextTrack_++;tracks_[id]=Track{};}
             else available.erase(std::find(available.begin(),available.end(),id));
-            auto &track=tracks_[id]; track.box=box; track.faces.push_back(cropFace(frame,box));
-            if(track.faces.size()>25) track.faces.pop_front();
+            auto &track=tracks_[id]; track.box=box;
+            const auto face=cropFace(frame,box);
+            // Preserve the temporal input length expected by LR-ASD without
+            // running the detector and crop pipeline on every queued frame.
+            for (int i=0; i<temporalRepeats; ++i) {
+                track.faces.push_back(face);
+                if(track.faces.size()>25) track.faces.pop_front();
+            }
             track.missed=0;
             assigned.push_back(id);
         }
@@ -254,7 +311,8 @@ private:
     std::unique_ptr<Ort::Session> detector_;
     std::unique_ptr<SCRFDDetector> scrfd_;
     std::string detectorName_;
-    std::map<int,Track> tracks_; int nextTrack_=0; std::uint64_t calls_=0; double latencyMs_=0;
+    std::map<int,Track> tracks_; int nextTrack_=0; std::uint64_t calls_=0, processes_=0; double latencyMs_=0;
+    bool verboseLog_=false;
 };
 
 LRASDWorker::LRASDWorker() = default;
@@ -312,6 +370,10 @@ void LRASDWorker::run()
         lastFrameData=allFrames.back().data;
         if(frames.empty()) continue;
         if(frames.size()>5) frames.erase(frames.begin(),frames.end()-5);
+        const int temporalRepeats=static_cast<int>(frames.size());
+        // Keep only the newest image for face detection. temporalRepeats tells
+        // LR-ASD how many video-frame slots elapsed since the previous update.
+        std::vector<cv::Mat> newestFrame{frames.back()};
         std::vector<float> audio; audio.reserve(snapshot.AudioSignal.size());
         // scipy.io.wavfile.read supplies PCM16 magnitudes directly to the
         // official Python MFCC implementation; preserve that scale here.
@@ -320,7 +382,7 @@ void LRASDWorker::run()
             snapshot.AudioSignal.pop();
         }
         try {
-            auto predictions=engine_->process(frames,audio);
+            auto predictions=engine_->process(newestFrame,audio,temporalRepeats);
             std::lock_guard lock(predictionMutex_);
             latestPredictions_=std::move(predictions);
         }

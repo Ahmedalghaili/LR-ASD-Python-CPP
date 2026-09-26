@@ -7,6 +7,7 @@
 #include "utility_time.hpp"
 #include <iostream>
 #include <numeric> // std::iota
+#include <utility>
 #include "RobotCommand.pb.h"
 #include "utility_directory.hpp"
 
@@ -213,21 +214,16 @@ void ThreadProcessImage::run()
                 //Copy to VABuffer
                 mpVideoAudioBuffer->AddAFrame(inputImage);
 
-                if (iFrameCount == 0)
-                {
-                    inputImage.copyTo(outFrame); // To let outFrame has buffer
-                    // I draw the outFrame by myself, so I don't need to use the
-                    // output_video of MediaPipe. But MediaPipe requires an output buffer
-                    // to write the output video. So I create outFrame for this purpose. I
-                    // will draw the output video by myself, and I will not use the
-                    // content of outFrame outside this function.
-
-                    inputImage.copyTo(tempFrame); // To let tempFrame has buffer
-                                                  // tempFrame is used to receive the output video from MediaPipe. I
-                                                  // don't need it, but MediaPipe requires an output buffer to write the
-                                                  // output video. So I create tempFrame for this purpose. I will not
-                                                  // use the content of tempFrame outside this function.
-                }
+                // MediaPipe only needs a scratch output when its optional
+                // per-frame graph is enabled. The raw preview path avoids an
+                // extra full-resolution copy here.
+                const bool needsTempFrame =
+                    mpsetting->bHandLandmarkDetection ||
+                    (mpsetting->bFaceDetection &&
+                     mpsetting->FaceDetectionModel == "MediaPipe_Face");
+                if (needsTempFrame &&
+                    (tempFrame.empty() || tempFrame.size() != inputImage.size()))
+                    inputImage.copyTo(tempFrame);
 
                 // Save images to a queue for ASD.
 
@@ -281,17 +277,25 @@ void ThreadProcessImage::run()
                     cout << "Manual requested photo saved: " << filename << endl;
                 }
 
-                // Draw Pose landmarks
+                // Draw optional landmarks/features. With all optional
+                // processing disabled, keep the decoded frame by reference;
+                // this avoids a full-resolution copy on every incoming frame.
+                const bool needsOverlay =
+                    mpsetting->bHumanPoseEstimation ||
+                    mpsetting->bHandLandmarkDetection ||
+                    mpsetting->bFaceDetection;
                 mtx_UpdateOutFrame.lock();
-                // Publish the raw camera image even when pose, hand, and face
-                // visualization are all disabled in the settings file.
-                inputImage.copyTo(outFrame);
+                if (needsOverlay)
+                    inputImage.copyTo(outFrame);
+                else
+                    outFrame = inputImage;
                 bNewoutFrame = true;
                 // ToDo: remove this variable.
                 // if( b_HumanPoseEstimation)
+                std::unique_lock<std::mutex> taskLock(mtx_Task, std::defer_lock);
                 if (mpsetting->bHumanPoseEstimation)
                 {
-                    mtx_Task.lock();
+                    taskLock.lock();
                     bool use_Yolo11n_Pose = true;
                     if (mpsetting->PoseEstimationModel == "Yolo11n_Pose")
                     {
@@ -738,7 +742,10 @@ void ThreadProcessImage::run()
                     else
                     {
                         iNoPersonFrameCount++;
-                        if (iNoPersonFrameCount > 30)
+                        // In manual mode, preserve the head angle selected by
+                        // the operator instead of silently returning to zero.
+                        if (iNoPersonFrameCount > 30 &&
+                            action_option.move_mode != action_option.MOVE_MANUAL)
                         {
                             RobotCommandProtobuf::RobotCommand command;
                             command.set_yaw(0);
@@ -801,7 +808,6 @@ void ThreadProcessImage::run()
                         }
                     }
                 } // if( mbWatchPatient )
-                mtx_Task.unlock();
             } // if( bCorrectlyDecoded )
 
             // debug code, to messure the processing time
@@ -841,13 +847,15 @@ void ThreadProcessImage::NotifyEvent(string description, chrono::time_point<chro
 Mat ThreadProcessImage::getOutFrame()
 {
     Mat frame;
-    mtx_UpdateOutFrame.lock();
+    std::lock_guard<std::mutex> lock(mtx_UpdateOutFrame);
     if (bNewoutFrame)
     {
-        outFrame.copyTo(frame);
+        // Transfer the reference-counted image header instead of copying all
+        // pixels. The worker publishes a new Mat header for the next frame,
+        // so the returned frame remains valid for the preview window.
+        frame = std::move(outFrame);
         bNewoutFrame = false;
     }
-    mtx_UpdateOutFrame.unlock();
     return frame;
 }
 

@@ -8,6 +8,7 @@
 #include <QFileInfo>
 #include <QUrl>
 #include <iostream>
+#include <opencv2/imgproc.hpp>
 #include "ThreadStateControl.hpp"
 
 using namespace std;
@@ -86,6 +87,28 @@ void VideoWindow::showImage(const QString &fileName)
     }
     imageLabel->setStyleSheet(""); // Clear background styles for images
     imageLabel->setPixmap(pixmap);
+    stackedWidget->setCurrentWidget(imageLabel);
+}
+
+void VideoWindow::showFrame(const cv::Mat &frame)
+{
+    if (frame.empty())
+        return;
+
+    // Do not replace an explicitly requested robot video while it is playing.
+    // The live camera preview resumes automatically when that video ends.
+    if (player->playbackState() == QMediaPlayer::PlayingState)
+        return;
+
+    cv::Mat rgb;
+    if (frame.channels() == 1)
+        cv::cvtColor(frame, rgb, cv::COLOR_GRAY2RGB);
+    else
+        cv::cvtColor(frame, rgb, cv::COLOR_BGR2RGB);
+
+    const QImage image(rgb.data, rgb.cols, rgb.rows,
+                       static_cast<int>(rgb.step), QImage::Format_RGB888);
+    imageLabel->setPixmap(QPixmap::fromImage(image.copy()));
     stackedWidget->setCurrentWidget(imageLabel);
 }
 

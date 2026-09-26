@@ -18,7 +18,7 @@
     <string name="description_info">Info</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
-    <string name="server_url">192.168.0.8</string>
+    <string name="server_url">192.168.1.54</string>
     <string name="server_port_number">8895</string>
     <string name="connect">CONNECT</string>
     <string name="disconnect">DISCONNECT</string>

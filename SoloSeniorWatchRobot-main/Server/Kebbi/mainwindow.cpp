@@ -243,7 +243,7 @@ void MainWindow::UISetting(Ui::MainWindow *ui)
         ui->comboBox_MoveMode,
         static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
         this, &MainWindow::comboBox_MoveMode_changed);
-    ui->comboBox_MoveMode->setCurrentIndex(1); // Move body
+    ui->comboBox_MoveMode->setCurrentIndex(0); // Manual: keep the operator-set head angle
 
     ui->comboBox_DetectionMode->addItems({"Off", "On"});
     connect(

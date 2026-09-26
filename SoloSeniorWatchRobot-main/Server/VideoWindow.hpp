@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QMediaPlayer>
+#include <opencv2/core.hpp>
 
 class QStackedWidget;
 class QVideoWidget;
@@ -19,6 +20,7 @@ public:
     explicit VideoWindow(QWidget *parent = nullptr);
     void playVideo(const QString &fileName);
     void showImage(const QString &fileName);
+    void showFrame(const cv::Mat &frame);
     void showString(const QString &ShowString);
     ThreadStateControl* pThreadStateControl = nullptr;
 

@@ -3,6 +3,15 @@
 #Build the Robot Nurse Helper project with CMake
 #I wrote this shell script file to call another shell script file.
 
+# The workstation uses a user-local CUDA toolkit for the CUDA-enabled
+# whisper.cpp build.  Export it here so future server rebuilds can resolve
+# libcudart/cuBLAS without requiring a system-wide CUDA installation.
+cuda_whisper_lib="$HOME/.local/cuda-12.8/usr/local/cuda-12.8/targets/x86_64-linux/lib"
+if [ -d "$cuda_whisper_lib" ]; then
+    export LIBRARY_PATH="$cuda_whisper_lib:${LIBRARY_PATH:-}"
+    export LD_LIBRARY_PATH="$cuda_whisper_lib:${LD_LIBRARY_PATH:-}"
+fi
+
 if [ $# == 1 ]; then
     if [[ "$1" == "clean" ]]; then
         rm -rf build

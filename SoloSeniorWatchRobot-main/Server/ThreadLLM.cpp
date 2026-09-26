@@ -1,5 +1,6 @@
 #include "ThreadLLM.hpp"
 #include "utility_string.hpp"
+#include <cstdlib>
 
 ThreadLLM::ThreadLLM()
 {
@@ -11,7 +12,11 @@ ThreadLLM::~ThreadLLM()
 
 void ThreadLLM::run()
 {
-    AnythingLLM anythingLLM("127.0.0.1", 3001, mpsetting->AnythingLLM_API_key);
+    const char *localApiKey = std::getenv("ANYTHINGLLM_API_KEY");
+    const std::string apiKey = localApiKey && *localApiKey
+                                   ? localApiKey
+                                   : mpsetting->AnythingLLM_API_key;
+    AnythingLLM anythingLLM("127.0.0.1", 3001, apiKey);
 
     mutex mtx;
     unique_lock<mutex> lk(mtx);

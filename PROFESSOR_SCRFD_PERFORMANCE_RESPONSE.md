@@ -142,12 +142,13 @@ improvement.
 
 ## Robot status
 
-SCRFD is implemented and tested in the experimental executable, but the
-production robot server still loads S3FD. The production worker currently
-references `s3fd_270x480.onnx` here:
+SCRFD is now integrated into the production robot server with an environment
+variable switch. The server defaults to S3FD for rollback and can select SCRFD
+without another source change. The detector switch is implemented here:
 
 ```text
-SoloSeniorWatchRobot-main/Server/LRASDWorker.cpp:110
+SoloSeniorWatchRobot-main/Server/LRASDWorker.cpp
+SoloSeniorWatchRobot-main/Server/SCRFDDetector.hpp
 ```
 
 The experimental implementation is here:
@@ -166,8 +167,8 @@ experiments/scrfd_cpp/models/scrfd_2.5g_bnkps.dynamic.onnx
 
 SCRFD must not be deployed by simply renaming it to the S3FD model filename.
 Its preprocessing, output tensors, decoding, and NMS are different. The
-SCRFD implementation must be integrated into the production worker or selected
-as a separate detector backend.
+production worker now selects it as a separate detector backend using
+`LR_ASD_DETECTOR=scrfd`.
 
 ## Next tests on the robot
 

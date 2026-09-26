@@ -10,6 +10,7 @@ struct Options {
     std::string detector="s3fd", device="cuda", model, asd, video, audio, output;
     int width=640,height=640,warmup=10,max_frames=0;
     float score=.5f,nms=.4f;
+    bool pace=false;
 };
 Options parse(int argc,char**argv) {
     Options o;
@@ -28,6 +29,7 @@ Options parse(int argc,char**argv) {
     o.width=std::stoi(take("--width","640"));o.height=std::stoi(take("--height","640"));
     o.warmup=std::stoi(take("--warmup","10"));o.max_frames=std::stoi(take("--max-frames","0"));
     o.score=std::stof(take("--score","0.5"));o.nms=std::stof(take("--nms","0.4"));
+    o.pace=take("--pace","0")=="1";
     if(!values.empty())throw std::runtime_error("Unknown option: "+values.begin()->first);
     if(o.model.empty()||o.asd.empty()||o.video.empty()||o.audio.empty()||o.output.empty())
         throw std::runtime_error("Required: --detector s3fd|scrfd --model PATH --asd PATH --video PATH --audio WAV --output MP4 [--device cuda|cpu]");
@@ -60,6 +62,11 @@ int main(int argc,char**argv) try {
     if(sfps<=0)throw std::runtime_error("Invalid source FPS");
     cv::Mat first;if(!cap.read(first))throw std::runtime_error("Empty video");
     for(int i=0;i<o.warmup;++i){detector(first);asd.forward({torch::zeros({1,100,13},runtime_device),torch::zeros({1,25,112,112},runtime_device)});}
+    // Live inference grows the temporal window from 5 to 25 frames. Warm every
+    // shape once so the first real frame does not pay a large CUDA allocation
+    // or kernel-selection stall.
+    for(int n=5;n<=25;n+=5)
+        asd.forward({torch::zeros({1,n*4,13},runtime_device),torch::zeros({1,n,112,112},runtime_device)});
     sync_gpu();cap.release();cap.open(o.video);
     cv::VideoWriter out(o.output,cv::VideoWriter::fourcc('m','p','4','v'),25,{width,height});
     if(!out.isOpened())throw std::runtime_error("Cannot create output video");
@@ -67,7 +74,7 @@ int main(int argc,char**argv) try {
     if(!csv||!timing)throw std::runtime_error("Cannot create CSV");
     csv<<"frame,time_s,track,score,speaking,x1,y1,x2,y2\n";
     timing<<"frame,detector_ms,asd_ms,total_ms,faces\n";
-    std::map<int,Track>tracks;int next=0,fi=0,si=-1;size_t face_count=0;
+    std::map<int,Track>tracks;int next=0,fi=0,si=-1;size_t face_count=0,late_frames=0;double max_late_ms=0;
     cv::Mat frame;std::vector<double>det_lat,asd_lat,frame_lat;
     auto begin=Clock::now();
     while(!o.max_frames||fi<o.max_frames){
@@ -106,12 +113,18 @@ int main(int argc,char**argv) try {
         }
         out.write(frame);frame_lat.push_back(ms(frame_start));
         timing<<fi<<','<<det_ms<<','<<asd_ms<<','<<frame_lat.back()<<','<<assigned.size()<<'\n';++fi;
+        double elapsed=std::chrono::duration<double>(Clock::now()-begin).count();
+        double deadline=fi/25.0,late_ms=(elapsed-deadline)*1000.0;
+        if(late_ms>0){++late_frames;max_late_ms=std::max(max_late_ms,late_ms);}
+        if(o.pace&&late_ms<0)std::this_thread::sleep_for(std::chrono::duration<double>(-late_ms));
     }
     out.release();csv.close();timing.close();double wall=ms(begin)/1000;
     std::cout<<std::setprecision(8)<<"{\"detector\":\""<<o.detector<<"\",\"device\":\""<<o.device
       <<"\",\"frames\":"<<fi<<",\"wall_s\":"<<wall<<",\"pipeline_fps\":"<<fi/wall
       <<",\"detector_mean_ms\":"<<mean(det_lat)<<",\"detector_p95_ms\":"<<p95(det_lat)
       <<",\"frame_p95_ms\":"<<p95(frame_lat)<<",\"tracks_created\":"<<next<<",\"face_observations\":"<<face_count
-      <<",\"asd_calls\":"<<asd_lat.size()<<",\"asd_mean_ms\":"<<mean(asd_lat)<<"}\n";
+      <<",\"asd_calls\":"<<asd_lat.size()<<",\"asd_mean_ms\":"<<mean(asd_lat)
+      <<",\"pace_realtime\":"<<(o.pace?"true":"false")<<",\"late_frames\":"<<late_frames
+      <<",\"max_late_ms\":"<<max_late_ms<<"}\n";
     return fi?0:1;
 } catch(const std::exception&e){std::cerr<<e.what()<<'\n';return 1;}

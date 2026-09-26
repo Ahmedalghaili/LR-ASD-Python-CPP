@@ -58,7 +58,17 @@ float overlap(const Box&a,const Box&b){float x1=std::max(a.x1,b.x1),y1=std::max(
 std::vector<Box> detect(torch::jit::script::Module&net,const cv::Mat&frame){
  int dw=std::lround(frame.cols*.25),dh=std::lround(frame.rows*.25);cv::Mat small,rgb;cv::resize(frame,small,{dw,dh});cv::cvtColor(small,rgb,cv::COLOR_BGR2RGB);std::vector<float>buf(3*dh*dw);float mean[3]={123,117,104};for(int c=0;c<3;c++)for(int y=0;y<dh;y++)for(int x=0;x<dw;x++)buf[c*dh*dw+y*dw+x]=rgb.at<cv::Vec3b>(y,x)[c]-mean[c];
  auto t=torch::from_blob(buf.data(),{1,3,dh,dw},torch::kFloat32).clone().to(runtime_device);auto tup=net.forward({t}).toTuple();auto loc=tup->elements()[0].toTensor().to(torch::kCPU).contiguous();auto conf=tup->elements()[1].toTensor().to(torch::kCPU).contiguous();auto l=loc.accessor<float,3>();auto c=conf.accessor<float,3>();int fh[6],fw[6],steps[6]={4,8,16,32,64,128},mins[6]={16,32,64,128,256,512};fh[0]=dh/4;fw[0]=dw/4;for(int z=1;z<6;z++){if(z==3){fh[z]=fh[z-1]/2;fw[z]=fw[z-1]/2;}else{fh[z]=(fh[z-1]+1)/2;fw[z]=(fw[z-1]+1)/2;}}std::vector<Box>b;int k=0;
- for(int z=0;z<6;z++)for(int y=0;y<fh[z];y++)for(int x=0;x<fw[z];x++,k++){if(c[0][k][1]<.9)continue;float cx=(x+.5f)*steps[z]/dw,cy=(y+.5f)*steps[z]/dh,pw=mins[z]/float(dw),ph=mins[z]/float(dh);cx+=l[0][k][0]*.1f*pw;cy+=l[0][k][1]*.1f*ph;pw*=std::exp(l[0][k][2]*.2f);ph*=std::exp(l[0][k][3]*.2f);b.push_back({(cx-pw/2)*frame.cols,(cy-ph/2)*frame.rows,(cx+pw/2)*frame.cols,(cy+ph/2)*frame.rows,c[0][k][1]});}
+ for(int z=0;z<6;z++)for(int y=0;y<fh[z];y++)for(int x=0;x<fw[z];x++,k++){
+  if(c[0][k][1]<.9)continue;
+  float cx=(x+.5f)*steps[z]/dw,cy=(y+.5f)*steps[z]/dh,pw=mins[z]/float(dw),ph=mins[z]/float(dh);
+  cx+=l[0][k][0]*.1f*pw;cy+=l[0][k][1]*.1f*ph;
+  pw*=std::exp(l[0][k][2]*.2f);ph*=std::exp(l[0][k][3]*.2f);
+  Box q{(cx-pw/2)*frame.cols,(cy-ph/2)*frame.rows,(cx+pw/2)*frame.cols,(cy+ph/2)*frame.rows,c[0][k][1]};
+  if(!std::isfinite(q.x1)||!std::isfinite(q.y1)||!std::isfinite(q.x2)||!std::isfinite(q.y2))continue;
+  q.x1=std::clamp(q.x1,0.f,float(frame.cols-1));q.y1=std::clamp(q.y1,0.f,float(frame.rows-1));
+  q.x2=std::clamp(q.x2,0.f,float(frame.cols));q.y2=std::clamp(q.y2,0.f,float(frame.rows));
+  if(q.x2>q.x1+1.f&&q.y2>q.y1+1.f)b.push_back(q);
+ }
  std::sort(b.begin(),b.end(),[](auto&a,auto&d){return a.score>d.score;});std::vector<Box>keep;for(auto&q:b){bool ok=true;for(auto&r:keep)if(overlap(q,r)>.1){ok=false;break;}if(ok)keep.push_back(q);}return keep;
 }
 std::vector<float> crop112(const cv::Mat&frame,const Box&b){float size=std::max(b.x2-b.x1,b.y2-b.y1),cx=(b.x1+b.x2)/2,cy=(b.y1+b.y2)/2,h=size*.55f;int x1=std::floor(cx-h),y1=std::floor(cy-h),x2=std::ceil(cx+h),y2=std::ceil(cy+h);cv::Mat pad;int pl=std::max(0,-x1),pt=std::max(0,-y1),pr=std::max(0,x2-frame.cols),pb=std::max(0,y2-frame.rows);cv::copyMakeBorder(frame,pad,pt,pb,pl,pr,cv::BORDER_CONSTANT,{110,110,110});x1+=pl;x2+=pl;y1+=pt;y2+=pt;cv::Mat g;cv::cvtColor(pad(cv::Rect(x1,y1,x2-x1,y2-y1)),g,cv::COLOR_BGR2GRAY);cv::resize(g,g,{112,112});std::vector<float>v(12544);for(int y=0;y<112;y++)for(int x=0;x<112;x++)v[y*112+x]=g.at<uint8_t>(y,x);return v;}

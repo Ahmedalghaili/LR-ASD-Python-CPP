@@ -25,8 +25,8 @@ SCRFD is already implemented and tested in the separate experimental C++
 executable. It is selectable with `--detector scrfd` and uses ONNX Runtime
 CUDA.
 
-The production robot server is **not switched over yet**. It still loads
-`s3fd_270x480.onnx` in `SoloSeniorWatchRobot-main/Server/LRASDWorker.cpp`.
+The production robot server now supports both detectors. It defaults to S3FD
+for rollback compatibility and can select SCRFD with `LR_ASD_DETECTOR=scrfd`.
 Do not replace the S3FD file by renaming the SCRFD file: the output format,
 preprocessing, decoding, and NMS are different.
 
@@ -80,18 +80,32 @@ SoloSeniorWatchRobot-main/Server/LRASDWorker.cpp
 SoloSeniorWatchRobot-main/Server/LRASDWorker.hpp
 SoloSeniorWatchRobot-main/Server/CMakeLists.txt
 SoloSeniorWatchRobot-main/Server/LR-ASD-INTEGRATION.md
+SoloSeniorWatchRobot-main/Server/SCRFDDetector.hpp
 ```
 
-The current production detector path is defined around this file name:
+The original production detector path is:
 
 ```text
 <LR_ASD_MODEL_DIR>/s3fd_270x480.onnx
 ```
 
-The production worker currently constructs its detector at:
+The SCRFD production detector path is:
+
+```text
+<LR_ASD_MODEL_DIR>/scrfd_2.5g_bnkps.dynamic.onnx
+```
+
+The production worker selects the detector in:
 
 ```text
 SoloSeniorWatchRobot-main/Server/LRASDWorker.cpp:110
+```
+
+The switch implementation is in:
+
+```text
+SoloSeniorWatchRobot-main/Server/SCRFDDetector.hpp
+SoloSeniorWatchRobot-main/Server/run_with_lrasd.sh
 ```
 
 ## New LR-ASD checkpoint
@@ -210,29 +224,46 @@ Expected result from the current workstation artifacts:
 Maximum coordinate error: below 0.028 pixels.
 ```
 
-## Production robot integration plan
+## Production robot integration
 
-The experimental `Scrfd` class contains the code needed for SCRFD inference,
-but it is not currently included by the production `LRASDWorker`. To integrate
-it into the robot server:
+The production `LRASDWorker` now includes SCRFD preprocessing, ONNX inference,
+output decoding, NMS, and an environment-variable model switch.
 
-1. Copy or adapt the SCRFD implementation from
-   `experiments/scrfd_cpp/src/scrfd.hpp` into the robot server source tree.
-2. Add the SCRFD source/header to
-   `SoloSeniorWatchRobot-main/Server/CMakeLists.txt`.
-3. Add the ONNX Runtime include and library paths already required by the
-   server.
-4. Add a production model path such as
-   `<LR_ASD_MODEL_DIR>/scrfd_2.5g_bnkps.dynamic.onnx`.
-5. Replace the S3FD detector session in `LRASDWorker.cpp` with SCRFD
-   preprocessing, ONNX inference, output decoding, and NMS.
-6. Convert SCRFD boxes back to the original camera-frame coordinates before
-   calling the existing tracking and `cropFace` code.
-7. Keep the existing 112x112 grayscale crops, MFCC processing, tracking, and
-   LR-ASD inputs unchanged.
-8. Add a configuration switch so the robot can select `s3fd` or `scrfd` for
-   rollback during testing.
-9. Build and test with the original S3FD first, then SCRFD on the same input.
+Use the original S3FD backend:
+
+```bash
+LR_ASD_DETECTOR=s3fd \
+  bash run_with_lrasd.sh build/SoloSeniorWatchRobot \
+  --SettingFile json/ROGG16_SSWR.json
+```
+
+Use SCRFD-2.5G:
+
+```bash
+LR_ASD_DETECTOR=scrfd \
+LR_ASD_SCRFD_MODEL=/path/to/scrfd_2.5g_bnkps.dynamic.onnx \
+  bash run_with_lrasd.sh build/SoloSeniorWatchRobot \
+  --SettingFile json/ROGG16_SSWR.json
+```
+
+If SCRFD is copied into the normal model directory, the path override is not
+needed:
+
+```bash
+cp experiments/scrfd_cpp/models/scrfd_2.5g_bnkps.dynamic.onnx \
+  "$HOME/SoloSeniorWatchRobot_build/lr-asd/"
+LR_ASD_DETECTOR=scrfd \
+  bash run_with_lrasd.sh build/SoloSeniorWatchRobot \
+  --SettingFile json/ROGG16_SSWR.json
+```
+
+The implementation keeps the existing 112×112 grayscale crops, MFCC
+processing, tracking, and LR-ASD inputs unchanged. `LR_ASD_DETECTOR` selects
+`s3fd` or `scrfd`; S3FD remains the default for rollback. The optional
+`LR_ASD_SCRFD_MODEL` and `LR_ASD_S3FD_MODEL` variables override model paths.
+
+SCRFD uses top-left letterboxing at 480×288 with score threshold 0.5 and NMS
+threshold 0.4. S3FD uses different preprocessing and thresholds.
 
 SCRFD uses top-left letterboxing and a score threshold of 0.5/NMS threshold of
 0.4 in the experimental runner. S3FD uses different preprocessing and
@@ -256,6 +287,17 @@ Run the following checks on the actual robot:
 
 The workstation result proves that the SCRFD implementation is functional and
 faster on that GPU. It does not by itself prove the final robot performance.
+
+The workstation production server was rebuilt and started successfully with
+SCRFD on 2026-09-15. It loaded the SCRFD model and listened on ports 8895,
+8896, 8897, and 8898. Set the robot app's server address to:
+
+```text
+192.168.0.44
+```
+
+Then press Start in the robot application. Keep the server terminal running
+while testing.
 
 ## Reference results
 

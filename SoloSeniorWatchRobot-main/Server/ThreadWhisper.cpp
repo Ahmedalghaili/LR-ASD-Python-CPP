@@ -7,7 +7,9 @@ ThreadWhisper::ThreadWhisper()
     n_samples_keep = (int)(1e-3 * params.keep_ms * WHISPER_SAMPLE_RATE);
     n_samples_len = (int)(1e-3 * params.length_ms * WHISPER_SAMPLE_RATE);
     n_samples_step = (int)(1e-3 * params.step_ms * WHISPER_SAMPLE_RATE);
-    n_samples_silent = (int)(0 * WHISPER_SAMPLE_RATE); // disable the waiting time 0.3 second
+    // Wait briefly after the last speech frame so the final word is included
+    // in the segment instead of transcribing every short pause.
+    n_samples_silent = (int)(0.3 * WHISPER_SAMPLE_RATE);
 
     // used for the stream mode
     if (n_samples_step > 0)
@@ -40,16 +42,16 @@ void ThreadWhisper::run()
     // initial whisper.cpp
     whisper_context_params cparams = whisper_context_default_params();
 
-    // Here, if there is no GPU, whisper.cpp will use CPU.
-    cparams.use_gpu = true;
+    // Use CUDA when the linked whisper.cpp build provides it; otherwise
+    // whisper.cpp falls back to CPU.
+    cparams.use_gpu = params.use_gpu;
+    cparams.flash_attn = params.flash_attn;
     ctx = whisper_init_from_file_with_params(model_file_path.toUtf8().constData(), cparams);
     if (ctx == NULL)
     {
         std::cerr << "Failed to initialize whisper context" << std::endl;
         throw std::invalid_argument("whiper loading model fails");
     }
-    cparams.flash_attn = params.flash_attn;
-
     whisper_full_params wparams = whisper_full_default_params(params.beam_size > 1 ? WHISPER_SAMPLING_BEAM_SEARCH : WHISPER_SAMPLING_GREEDY);
 
     wparams.print_progress = false;
@@ -70,7 +72,7 @@ void ThreadWhisper::run()
     // disable temperature fallback
     // wparams.temperature_inc  = -1.0f;
     wparams.temperature_inc = 0.2f;
-    wparams.temperature = (strLanguage.c_str() == "zh") ? 0.5f : 0.5f; //[MOHAMED]
+    wparams.temperature = (strLanguage == "zh") ? 0.5f : 0.5f;
     wparams.temperature_inc = params.no_fallback ? 0.0f : wparams.temperature_inc;
 
     wparams.prompt_tokens = params.no_context ? nullptr : prompt_tokens.data();
@@ -78,7 +80,9 @@ void ThreadWhisper::run()
 
     wparams.translate = false;
     wparams.language = strLanguage.c_str(); // "zh" for Chinese, "en" for English, "ar" for Arabic
-    wparams.no_speech_thold = 0.02f;        // 0.6f; // silence threshold for VAD //[MOHAMED]
+    // Reject low-confidence non-speech segments. Silero VAD remains the
+    // primary speech gate, while this prevents background-noise hallucinations.
+    wparams.no_speech_thold = 0.6f;
 
     while (b_WhileLoop)
     {

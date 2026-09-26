@@ -1018,9 +1018,11 @@ void MainWindow::timer_event()
                                 cv::LINE_AA);
                 }
             }
-            cv::imshow("Image", preview);
-            cv::waitKey(1); // I miss this line so that Ubuntu does not update
-                            // the window.
+            // Show the live camera in the application's Video Player window.
+            // The old cv::imshow("Image") path opened a separate window and
+            // left the Video Player window blank.
+            if (pVideoWindow)
+                pVideoWindow->showFrame(preview);
         }
         // update pitch and yaw
         ui->lineEdit_yaw_now->setText(QString::number(robot_status.yaw_degree));

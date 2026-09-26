@@ -1,10 +1,36 @@
 # LR-ASD robot integration
 
 `MainWindow` owns an `LRASDWorker`. The worker runs outside the GUI thread and
-calls `mVABuffer.GetVideoAudioBuffer()` every 40 ms. It consumes only new camera
-frames, takes the matching latest 16 kHz PCM audio window, performs S3FD face
-detection/tracking, creates 112 x 112 grayscale face crops, extracts the same
-13-coefficient MFCC features as Python, and runs the official LR-ASD weights.
+calls `mVABuffer.GetVideoAudioBuffer()` every 200 ms. It consumes only new
+camera frames, takes the matching latest 16 kHz PCM audio window, performs
+face detection/tracking, creates 112 x 112 grayscale face crops, extracts the
+same 13-coefficient MFCC features as Python, and runs the official LR-ASD
+weights.
+
+## Realtime optimization and intentionally disabled work
+
+The live path was changed as follows:
+
+- Face detection runs once on the newest frame in each 200 ms snapshot. Older
+  queued frames are not redetected.
+- The newest face crop is repeated for the elapsed temporal slots so LR-ASD
+  still receives its required 5--25 frame input shape. This reduces detection
+  cost, but is less accurate during very fast face motion than offline
+  per-frame detection.
+- The previous hand-written O(N^2) MFCC Fourier loop is disabled and replaced
+  with OpenCV's optimized DFT.
+- The stale video buffer is reduced from 300 to 50 frames, and audio from
+  160,000 to 32,000 samples.
+- When optional overlays are disabled, the raw video preview transfers the
+  decoded `cv::Mat` buffer instead of making two full-resolution pixel copies.
+
+The following optional robot features remain disabled in
+`json/ROGG16_SSWR.json` for the realtime test: facial-expression recognition,
+pose estimation, hand landmarks, the separate InspireFace/dlib face pipeline,
+visual compass, image saving, and server audio echo. The preview, Whisper, LR-
+ASD, robot communication, and raw video display remain enabled. MediaPipe
+graphs may still initialize at startup, but they do not process each frame
+while their settings are false.
 
 ## Models
 

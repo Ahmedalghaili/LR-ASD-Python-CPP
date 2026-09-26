@@ -25,7 +25,9 @@ struct whisper_params
     int32_t keep_ms = 4500;
     int32_t max_tokens = 32;
     int32_t audio_ctx = 0;
-    int32_t beam_size = 6;
+    // Greedy decoding is substantially faster than beam search and is
+    // adequate for the short robot commands used here.
+    int32_t beam_size = 1;
 
     //    float vad_thold    = 0.6f;
     float vad_thold = 1.0f;    // 0.9f;  //0.8f

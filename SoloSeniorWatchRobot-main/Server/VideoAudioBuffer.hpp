@@ -26,8 +26,10 @@ public:
     VABuffer GetVideoAudioBuffer();
 
 protected:
-    std::size_t uiFrameBufferSize = 300;
-    std::size_t uiSamepleSize = 160000;
+    // LR-ASD needs 25 frames and about 1.02 seconds of 16 kHz audio. Keep a
+    // small safety margin instead of retaining 12 seconds of stale data.
+    std::size_t uiFrameBufferSize = 50;
+    std::size_t uiSamepleSize = 32000;
     VABuffer mInternalBuffer;
     mutex mtx_video;
     mutex mtx_audio;
