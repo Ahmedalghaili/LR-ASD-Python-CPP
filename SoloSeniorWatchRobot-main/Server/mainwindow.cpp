@@ -7,7 +7,11 @@
 #include <QPixmap>
 #include <QStandardItemModel>
 #include <QStringListModel>
+#include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <iostream>
 #include <opencv2/calib3d.hpp>
 #include <opencv2/features2d.hpp>
@@ -42,13 +46,27 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     UISetting(ui);
+    // Optional: start in an Active Speaker Following mode without using the
+    // UI, e.g. ACTIVE_SPEAKER_FOLLOW=simulation (or robot) for headless tests.
+    {
+        const QByteArray follow = qgetenv("ACTIVE_SPEAKER_FOLLOW");
+        if (follow == "simulation")
+            ui->comboBox_MoveMode->setCurrentIndex(3);
+        else if (follow == "robot")
+            ui->comboBox_MoveMode->setCurrentIndex(4);
+    }
 
     // One QTcpServer only listens to one port. If you want to listen to
     // multiple ports, you need to create multiple QTcpServer objects.
+    // SSWR_LISTEN_ADDRESS=127.0.0.1 restricts the server to local clients,
+    // e.g. so a real robot cannot connect while testing with a fake one.
+    const QHostAddress listenAddress = qEnvironmentVariableIsSet("SSWR_LISTEN_ADDRESS")
+        ? QHostAddress(qEnvironmentVariable("SSWR_LISTEN_ADDRESS"))
+        : QHostAddress(QHostAddress::Any);
     m_server_receive_image = new QTcpServer();
     // 2024/12/27 The port number is also hard-coded. I need to modify it in the
     // future.
-    if (m_server_receive_image->listen(QHostAddress::Any, 8895))
+    if (m_server_receive_image->listen(listenAddress, 8895))
     {
         connect(m_server_receive_image, &QTcpServer::newConnection, this,
                 &MainWindow::newConnection_receive_image);
@@ -59,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     m_server_send_command = new QTcpServer();
-    if (m_server_send_command->listen(QHostAddress::Any, 8896))
+    if (m_server_send_command->listen(listenAddress, 8896))
     {
         connect(m_server_send_command, &QTcpServer::newConnection, this,
                 &MainWindow::newConnection_send_command);
@@ -70,7 +88,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     m_server_receive_audio = new QTcpServer();
-    if (m_server_receive_audio->listen(QHostAddress::Any, 8897))
+    if (m_server_receive_audio->listen(listenAddress, 8897))
     {
         connect(m_server_receive_audio, &QTcpServer::newConnection, this,
                 &MainWindow::newConnection_receive_audio);
@@ -81,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     m_server_receive_message = new QTcpServer();
-    if (m_server_receive_message->listen(QHostAddress::Any, 8898))
+    if (m_server_receive_message->listen(listenAddress, 8898))
     {
         connect(m_server_receive_message, &QTcpServer::newConnection, this,
                 &MainWindow::newConnection_receive_message);
@@ -146,6 +164,13 @@ MainWindow::MainWindow(QWidget *parent)
             mLRASDWorker->submit(mVABuffer.GetVideoAudioBuffer());
         });
         lrAsdTimer->start(200); // five new frames at LR-ASD's 25 fps
+
+        // Active Speaker Following reads each new LR-ASD result. It only
+        // acts when a Follow speaker move mode is selected.
+        QTimer *followTimer = new QTimer(this);
+        connect(followTimer, &QTimer::timeout, this,
+                &MainWindow::updateActiveSpeakerFollowing);
+        followTimer->start(100);
     }
 
     thread_receive_message.pSendMessageManager = &sendMessageManager;
@@ -153,6 +178,53 @@ MainWindow::MainWindow(QWidget *parent)
     thread_receive_message.mpThreadProcessImage = &thread_process_image;
     thread_receive_message.mpWhisper = &thread_whisper;
     thread_receive_message.mpLogger = &mlogger;
+    // Active Speaker Following settings (see ACTIVE_SPEAKER_FOLLOWING.md).
+    {
+        ActiveSpeakerConfig config;
+        const QByteArray doaMode = qgetenv("ACTIVE_SPEAKER_DOA");
+        if (doaMode == "off")
+            config.doaMode = ActiveSpeakerConfig::DoaMode::Off;
+        else if (doaMode == "look_at_user")
+            config.doaMode = ActiveSpeakerConfig::DoaMode::LookAtUser;
+        else if (doaMode == "rotate")
+            config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
+        else
+            config.doaMode = ActiveSpeakerConfig::DoaMode::Log;
+        bool ok = false;
+        const double sign = qEnvironmentVariable("ACTIVE_SPEAKER_DOA_SIGN").toDouble(&ok);
+        if (ok && (sign == 1 || sign == -1))
+            config.doaSign = sign;
+        const double offset = qEnvironmentVariable("ACTIVE_SPEAKER_DOA_OFFSET").toDouble(&ok);
+        if (ok)
+            config.doaOffsetDeg = offset;
+        const double logit = qEnvironmentVariable("ACTIVE_SPEAKER_LOGIT").toDouble(&ok);
+        if (ok)
+            config.speakingLogit = float(logit);
+        const double acquire = qEnvironmentVariable("ACTIVE_SPEAKER_ACQUIRE_MS").toDouble(&ok);
+        if (ok && acquire >= 0)
+            config.acquireMs = acquire;
+        if (qEnvironmentVariable("ACTIVE_SPEAKER_IDLE_LOOK") == "0")
+            config.lookAtIdleFace = false;
+        const int speed = qEnvironmentVariable("ACTIVE_SPEAKER_BODY_SPEED").toInt(&ok);
+        if (ok && speed >= 1 && speed <= 7)
+            mBodySpeedLevel = speed;
+        mSpeakerFollower = ActiveSpeakerFollower(config);
+        std::cout << "{\"component\":\"ActiveSpeaker\",\"event\":\"config\",\"doa_mode\":\""
+                  << (doaMode.isEmpty() ? QByteArray("log") : doaMode).constData()
+                  << "\",\"doa_sign\":" << config.doaSign << ",\"doa_offset\":" << config.doaOffsetDeg
+                  << ",\"body_speed\":" << mBodySpeedLevel << ",\"speaking_logit\":" << config.speakingLogit
+                  << ",\"acquire_ms\":" << config.acquireMs << ",\"idle_look\":" << config.lookAtIdleFace << "}"
+                  << std::endl;
+    }
+    thread_receive_message.onVoiceDirection = [this](int doa) {
+        const double nowMs = std::chrono::duration<double, std::milli>(
+                                 std::chrono::steady_clock::now().time_since_epoch())
+                                 .count();
+        std::lock_guard<std::mutex> lock(mVoiceMutex);
+        mVoiceDoas.emplace_back(doa, nowMs);
+        if (mVoiceDoas.size() > 50)
+            mVoiceDoas.erase(mVoiceDoas.begin());
+    };
 
     thread_state_control.m_pSendMessageManager = &sendMessageManager;
     thread_state_control.mpThreadWhisper = &thread_whisper;
@@ -706,6 +778,13 @@ void MainWindow::comboBox_MoveMode_changed()
     case 2: // move head
         thread_process_image.action_option.move_mode = ActionOption::MOVE_HEAD;
         break;
+    case 3: // follow speaker, decisions logged only
+        thread_process_image.action_option.move_mode =
+            ActionOption::FOLLOW_SPEAKER_SIMULATION;
+        break;
+    case 4: // follow speaker, robot moves
+        thread_process_image.action_option.move_mode = ActionOption::FOLLOW_SPEAKER;
+        break;
     }
 }
 
@@ -1018,6 +1097,8 @@ void MainWindow::timer_event()
                                 cv::LINE_AA);
                 }
             }
+            if (thread_process_image.action_option.followSpeakerEnabled())
+                drawActiveSpeakerOverlay(preview);
             // Show the live camera in the application's Video Player window.
             // The old cv::imshow("Image") path opened a separate window and
             // left the Video Player window blank.
@@ -1112,4 +1193,237 @@ void MainWindow::on_listView_Song_doubleClicked(const QModelIndex &index)
     sendMessageManager.AddMessage(command);
     // debug
     cout << "Custom action: " << index.row() << endl;
+}
+
+// Head pitch the Zenbo app sets once it connects (MainActivity: moveHead(0, 30)).
+static constexpr int kZenboConnectPitch = 30;
+
+void MainWindow::updateActiveSpeakerFollowing()
+{
+    const ActionOption &option = thread_process_image.action_option;
+    const bool live = option.move_mode == ActionOption::FOLLOW_SPEAKER;
+    if (!option.followSpeakerEnabled())
+    {
+        if (mFollowActive)
+        {
+            mFollowActive = false;
+            mSpeakerFollower.reset();
+            mFollowDecision = {};
+            mFollowLastAction.clear();
+            std::cout << "{\"component\":\"ActiveSpeaker\",\"event\":\"disabled\"}"
+                      << std::endl;
+        }
+        return;
+    }
+    if (!mLRASDWorker)
+        return;
+
+    if (!mFollowActive)
+    {
+        mFollowActive = true;
+        mSpeakerFollower.reset();
+        mFollowDecision = {};
+        mFollowLastAction.clear();
+        mSimYaw = mSimYawTarget = 0;
+        mSimPitch = mSimPitchStart = robot_status.pitch_degree;
+        mSimLastMs = 0;
+        std::cout << "{\"component\":\"ActiveSpeaker\",\"event\":\"enabled\",\"mode\":\""
+                  << (live ? "robot" : "simulation") << "\"}" << std::endl;
+        if (robot_status.yaw_degree == 0 && robot_status.pitch_degree == 0)
+        {
+            // The server has not moved the head, so it is still in the pose
+            // the Zenbo app sets after connecting: moveHead(0, 30).
+            robot_status.pitch_degree = kZenboConnectPitch;
+            mSimPitch = mSimPitchStart = kZenboConnectPitch;
+        }
+        if (live && robot_status.yaw_degree != 0)
+        {
+            // Bearings are measured in the head camera, so the head must face
+            // straight ahead for a body rotation to point at the speaker.
+            RobotCommandProtobuf::RobotCommand command;
+            command.set_yaw(0);
+            command.set_pitch(robot_status.pitch_degree);
+            command.set_headspeed(2);
+            sendMessageManager.AddMessage(command);
+            robot_status.yaw_degree = 0;
+        }
+    }
+
+    {
+        // Hand the newest DOA report to the follower; it ignores stale ones.
+        std::lock_guard<std::mutex> lock(mVoiceMutex);
+        if (!mVoiceDoas.empty())
+            mSpeakerFollower.addVoiceDirection(mVoiceDoas.back().first, mVoiceDoas.back().second);
+        mVoiceDoas.clear();
+    }
+
+    const LRASDResult result = mLRASDWorker->latestResult();
+    if (result.sequence == mFollowSequence)
+        return;
+    mFollowSequence = result.sequence;
+
+    const double nowMs = std::chrono::duration<double, std::milli>(
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
+    const ActiveSpeakerConfig &config = mSpeakerFollower.config();
+    if (!live)
+    {
+        // Turn the virtual body toward its commanded yaw at Zenbo speed.
+        const double dt = mSimLastMs > 0 ? (nowMs - mSimLastMs) / 1000.0 : 0.0;
+        const double maxStep = config.bodyDegPerSec * dt;
+        mSimYaw += std::clamp(mSimYawTarget - mSimYaw, -maxStep, maxStep);
+        mSimLastMs = nowMs;
+    }
+
+    const int width = result.frameSize.width, height = result.frameSize.height;
+    std::vector<SpeakerObservation> observations;
+    observations.reserve(result.predictions.size());
+    for (const LRASDPrediction &p : result.predictions)
+    {
+        float x1 = float(p.faceBox.x), x2 = float(p.faceBox.x + p.faceBox.width);
+        float y1 = float(p.faceBox.y), y2 = float(p.faceBox.y + p.faceBox.height);
+        if (!live && width > 0 && height > 0)
+        {
+            // Show the follower the faces where they would appear after the
+            // simulated turn and tilt; people outside the virtual view are
+            // not seen.
+            const double cx = (x1 + x2) / 2.0;
+            const double bearing = mSpeakerFollower.bearingOfX(cx, width) - mSimYaw;
+            if (std::abs(bearing) > config.hfovDeg / 2)
+                continue;
+            const float dx = float(mSpeakerFollower.xOfBearing(bearing, width) - cx);
+            const double cy = (y1 + y2) / 2.0;
+            const double elevation =
+                mSpeakerFollower.elevationOfY(cy, height) - (mSimPitch - mSimPitchStart);
+            const float dy = float(mSpeakerFollower.yOfElevation(elevation, height) - cy);
+            x1 += dx; x2 += dx;
+            y1 += dy; y2 += dy;
+        }
+        observations.push_back({p.trackId, p.logit, x1, y1, x2, y2});
+    }
+
+    const ActiveSpeakerDecision d = mSpeakerFollower.update(
+        observations, width, height, nowMs,
+        live ? robot_status.pitch_degree : mSimPitch);
+    mFollowDecision = d;
+    if (!live)
+    {
+        if (d.bodyDegree)
+            mSimYawTarget += *d.bodyDegree;
+        if (d.headPitch)
+            mSimPitch = *d.headPitch;
+        if (d.lookAtUserDoa)
+        {
+            // Simulate lookAtUser with the configured DOA calibration.
+            mSimYawTarget += std::remainder(
+                config.doaSign * *d.lookAtUserDoa + config.doaOffsetDeg, 360.0);
+        }
+    }
+
+    const bool notable = d.hasCommand() || d.voiceDoa || d.event == "acquire" ||
+                         d.event == "switch" || d.event == "reacquire" || d.event == "release" ||
+                         d.event == "look";
+    if (!notable)
+        return;
+
+    std::ostringstream action;
+    if (d.bodyDegree)
+        action << "ROTATE " << std::showpos << *d.bodyDegree << std::noshowpos << " ";
+    if (d.headPitch)
+        action << "PITCH " << *d.headPitch << " ";
+    if (d.face)
+        action << "FACE " << ZenboFace::name(*d.face) << " ";
+    if (d.lookAtUserDoa)
+        action << "LOOK_AT_USER doa " << *d.lookAtUserDoa;
+    mFollowLastAction = d.event + (action.str().empty() ? "" : ": " + action.str());
+
+    std::cout << "{\"component\":\"ActiveSpeaker\",\"mode\":\""
+              << (live ? "robot" : "simulation") << "\",\"event\":\"" << d.event
+              << "\",\"target\":" << d.targetTrack << ",\"bearing_deg\":" << std::fixed
+              << std::setprecision(1) << d.bearingDeg << ",\"elevation_deg\":" << d.elevationDeg;
+    if (d.bodyDegree)
+        std::cout << ",\"body_degree\":" << *d.bodyDegree;
+    if (d.headPitch)
+        std::cout << ",\"head_pitch\":" << *d.headPitch;
+    if (d.face)
+        std::cout << ",\"face\":\"" << ZenboFace::name(*d.face) << "\"";
+    if (d.lookAtUserDoa)
+        std::cout << ",\"look_at_user_doa\":" << *d.lookAtUserDoa;
+    if (d.voiceDoa)
+        std::cout << ",\"voice_doa\":" << *d.voiceDoa;
+    if (d.voiceSpeakerBearing)
+        std::cout << ",\"voice_speaker_bearing\":" << *d.voiceSpeakerBearing;
+    if (!live)
+        std::cout << ",\"sim_body_yaw_target\":" << mSimYawTarget
+                  << ",\"sim_head_pitch\":" << mSimPitch;
+    std::cout << ",\"reason\":\"" << d.reason << "\"}" << std::endl;
+    std::cout.unsetf(std::ios::fixed);
+
+    if (!live || !d.hasCommand())
+        return;
+    // Zenbo SocketManager: degree alone -> motion.moveBody(0, 0, degree[, speed]);
+    // look_at_user_doa -> utility.lookAtUser(doa);
+    // yaw/pitch -> motion.moveHead(); face alone -> robot.setExpression().
+    RobotCommandProtobuf::RobotCommand command;
+    if (d.bodyDegree)
+    {
+        command.set_degree(*d.bodyDegree);
+        if (mBodySpeedLevel > 0)
+            command.set_bodyspeed(mBodySpeedLevel);
+    }
+    if (d.lookAtUserDoa)
+        command.set_look_at_user_doa(*d.lookAtUserDoa);
+    if (d.headPitch)
+    {
+        command.set_yaw(0);
+        command.set_pitch(*d.headPitch);
+        command.set_headspeed(2);
+        robot_status.yaw_degree = 0;
+        robot_status.pitch_degree = *d.headPitch;
+    }
+    if (d.face)
+        command.set_face(*d.face);
+    sendMessageManager.AddMessage(command);
+}
+
+void MainWindow::drawActiveSpeakerOverlay(cv::Mat &preview)
+{
+    const bool live =
+        thread_process_image.action_option.move_mode == ActionOption::FOLLOW_SPEAKER;
+    const cv::Scalar yellow(0, 215, 255);
+    if (mFollowDecision.targetTrack >= 0 && mLRASDWorker)
+    {
+        for (const LRASDPrediction &p : mLRASDWorker->latestPredictions())
+        {
+            if (p.trackId != mFollowDecision.targetTrack)
+                continue;
+            const cv::Rect box = p.faceBox & cv::Rect(0, 0, preview.cols, preview.rows);
+            if (!box.empty())
+            {
+                cv::rectangle(preview, box, yellow, 6);
+                cv::putText(preview, "TARGET", {box.x, std::min(preview.rows - 5, box.y + box.height + 28)},
+                            cv::FONT_HERSHEY_SIMPLEX, 0.8, yellow, 2, cv::LINE_AA);
+            }
+        }
+    }
+    const std::string title = std::string("FOLLOW SPEAKER ") +
+                              (live ? "[ROBOT MOVING]" : "[SIMULATION - robot not moving]");
+    const std::string state =
+        mFollowDecision.targetTrack >= 0
+            ? cv::format("%s  target %d  bearing %+.1f deg", mFollowDecision.event.c_str(),
+                         mFollowDecision.targetTrack, mFollowDecision.bearingDeg)
+            : mFollowDecision.event;
+    const std::string simulated =
+        live ? std::string()
+             : cv::format("virtual body yaw %+.0f deg, head pitch %d", mSimYaw, mSimPitch);
+    int y = 30;
+    for (const std::string &text : {title, state, mFollowLastAction, simulated})
+    {
+        if (text.empty())
+            continue;
+        cv::putText(preview, text, {10, y}, cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 0), 5,
+                    cv::LINE_AA);
+        cv::putText(preview, text, {10, y}, cv::FONT_HERSHEY_SIMPLEX, 0.7, yellow, 2, cv::LINE_AA);
+        y += 30;
+    }
 }

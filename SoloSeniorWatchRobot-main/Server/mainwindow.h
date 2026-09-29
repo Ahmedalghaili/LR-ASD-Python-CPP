@@ -26,10 +26,12 @@
 #include "SendMessageManager.hpp"
 #include "SocketClientHandler.hpp"
 #include <memory>
+#include <mutex>
 #include "../VideoWindow.hpp"
 #include "Setting.hpp"
 #include "VideoAudioBuffer.hpp"
 #include "LRASDWorker.hpp"
+#include "ActiveSpeakerFollower.hpp"
 
 using namespace std;
 
@@ -103,6 +105,25 @@ protected:
 
     VideoAudioBuffer mVABuffer;
     std::unique_ptr<LRASDWorker> mLRASDWorker;
+
+    // Active Speaker Following: turns the robot toward the person LR-ASD
+    // marks as speaking. Runs on a 100 ms timer; see ActiveSpeakerFollower.hpp.
+    ActiveSpeakerFollower mSpeakerFollower;
+    std::uint64_t mFollowSequence = 0;
+    bool mFollowActive = false;
+    ActiveSpeakerDecision mFollowDecision;
+    std::string mFollowLastAction;
+    // Simulation mode has no real motion, so it keeps a virtual body yaw and
+    // head pitch and shifts the observed faces as a real turn would.
+    double mSimYaw = 0, mSimYawTarget = 0, mSimLastMs = 0;
+    int mSimPitch = 0, mSimPitchStart = 0;
+    // Zenbo voice-detection DOA reports (raw value, arrival time in ms),
+    // written by the message thread and read on the UI thread.
+    std::mutex mVoiceMutex;
+    std::vector<std::pair<int, double>> mVoiceDoas;
+    int mBodySpeedLevel = 0;  // Zenbo moveBody speed L1..L7; 0 = app default
+    void updateActiveSpeakerFollowing();
+    void drawActiveSpeakerOverlay(cv::Mat &preview);
 
 signals:
     void newMessage(QString); // where is the connect for this signal?

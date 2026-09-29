@@ -139,7 +139,63 @@ public class ZenboCallback extends RobotCallback implements RobotCallback.Listen
 
     @Override
     public void onVoiceDetect(JSONObject jsonObject) {
+        // Zenbo voice detection. The SDK reports vad_status, sound_level and
+        // doa (direction of arrival), e.g. {"event_vad_status": {...}}.
+        Log.d("ZenboCallback", "onVoiceDetect: " + jsonObject);
+        forwardVoiceEvent("onVoiceDetect", jsonObject);
+    }
 
+    // Send a voice event with its direction of arrival to the server
+    // (Active Speaker Following). Events without a doa are forwarded too, so the
+    // server log shows what the robot reports.
+    private void forwardVoiceEvent(String description, JSONObject jsonObject) {
+        if (socketManager == null || socketManager.mSocketSendMessages == null || jsonObject == null)
+            return;
+        long timestamp = System.currentTimeMillis();
+        Timestamp eventTime = Timestamp.newBuilder()
+                .setSeconds(timestamp / 1000)
+                .setNanos((int) ((timestamp % 1000) * 1000000))
+                .build();
+        RobotCommandOuterClass.RobotToServerMessage.Builder builder =
+                RobotCommandOuterClass.RobotToServerMessage.newBuilder()
+                        .setEventTime(eventTime)
+                        .setDescription(description);
+        Object doa = findKey(jsonObject, "doa", 3);
+        if (doa instanceof Number)
+            builder.setDoa(((Number) doa).intValue());
+        Object level = findKey(jsonObject, "sound_level", 3);
+        if (level instanceof Number)
+            builder.setSoundLevel(((Number) level).intValue());
+        Object vad = findKey(jsonObject, "vad_status", 3);
+        if (vad instanceof String)
+            builder.setVadStatus((String) vad);
+        socketManager.sendAMessage(builder.build(), socketManager.mSocketSendMessages);
+    }
+
+    // Find a key at any nesting level (the event payload may be nested or a
+    // JSON string inside the object).
+    private static Object findKey(JSONObject json, String key, int depth) {
+        if (json == null || depth < 0)
+            return null;
+        if (json.has(key))
+            return json.opt(key);
+        java.util.Iterator<String> keys = json.keys();
+        while (keys.hasNext()) {
+            Object value = json.opt(keys.next());
+            JSONObject child = null;
+            if (value instanceof JSONObject) {
+                child = (JSONObject) value;
+            } else if (value instanceof String && ((String) value).startsWith("{")) {
+                try {
+                    child = new JSONObject((String) value);
+                } catch (org.json.JSONException ignored) {
+                }
+            }
+            Object found = findKey(child, key, depth - 1);
+            if (found != null)
+                return found;
+        }
+        return null;
     }
 
     @Override
@@ -166,7 +222,8 @@ public class ZenboCallback extends RobotCallback implements RobotCallback.Listen
 
     @Override
     public void onEventUserUtterance(JSONObject jsonObject) {
-
+        Log.d("ZenboCallback", "onEventUserUtterance: " + jsonObject);
+        forwardVoiceEvent("onEventUserUtterance", jsonObject);
     }
 
     @Override

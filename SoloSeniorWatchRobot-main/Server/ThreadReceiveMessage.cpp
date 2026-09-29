@@ -33,6 +33,20 @@ void ThreadReceiveMessage::run()
                 {
                     mpThreadProcessImage->NotifyEvent("onCompleteOfMotionPlay", chrono::system_clock::now(), RTSmessage.yaw(), RTSmessage.pitch());
                 }
+                else if (RTSmessage.description() == "onVoiceDetect" ||
+                         RTSmessage.description() == "onEventUserUtterance")
+                {
+                    // Zenbo voice detection. Log every event so the DOA can be
+                    // checked on the robot even when following is disabled.
+                    cout << "{\"component\":\"ZenboVoice\",\"event\":\"" << RTSmessage.description()
+                         << "\",\"vad_status\":\"" << RTSmessage.vad_status()
+                         << "\",\"sound_level\":" << RTSmessage.sound_level();
+                    if (RTSmessage.has_doa())
+                        cout << ",\"doa\":" << RTSmessage.doa();
+                    cout << "}" << endl;
+                    if (RTSmessage.has_doa() && onVoiceDirection)
+                        onVoiceDirection(RTSmessage.doa());
+                }
                 else if (RTSmessage.description() == "onActivityRestart") // The mbtx activity complete
                 {
                     // debug

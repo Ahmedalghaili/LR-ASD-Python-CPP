@@ -248,7 +248,9 @@ void MainWindow::UISetting(Ui::MainWindow *ui)
 
     ui->comboBox_MoveMode->addItems({"Manual",
                                      "Move body",
-                                     "Move head"});
+                                     "Move head",
+                                     "Follow speaker (simulation)",
+                                     "Follow speaker (robot)"});
     connect(ui->comboBox_MoveMode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::comboBox_MoveMode_changed);
 
     ui->comboBox_DetectionMode->addItems({"None",

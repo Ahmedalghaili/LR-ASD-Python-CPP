@@ -113,7 +113,7 @@ std::string modelPath(const std::string &dir, const char *name)
 
 class LRASDEngine
 {
-    struct Track { Box box{}; std::deque<std::vector<float>> faces; float score=0; int missed=0; };
+    struct Track { Box box{}; std::deque<std::vector<float>> faces; float score=-10; int missed=0; }; // -10: not yet classified, silent
 public:
     explicit LRASDEngine(const std::string &directory)
         : env_(ORT_LOGGING_LEVEL_WARNING,"LR-ASD"), options_(makeOptions()),
@@ -121,6 +121,12 @@ public:
     {
         const char *verbose = std::getenv("LR_ASD_VERBOSE_LOG");
         verboseLog_ = verbose && std::string(verbose) == "1";
+        // Opt-in: detect and crop every new frame instead of repeating the
+        // newest crop, so LR-ASD sees real lip motion in its 25-frame window.
+        const char *cropAll = std::getenv("LR_ASD_CROP_ALL_FRAMES");
+        cropAllFrames_ = cropAll && std::string(cropAll) == "1";
+        if (cropAllFrames_)
+            std::cout << "LR-ASD crops every frame (LR_ASD_CROP_ALL_FRAMES=1)\n";
         const char *configuredDetector = std::getenv("LR_ASD_DETECTOR");
         detectorName_ = configuredDetector && *configuredDetector ? configuredDetector : "s3fd";
         if (detectorName_ == "scrfd") {
@@ -143,16 +149,31 @@ public:
         warmup();
     }
 
+    bool cropsAllFrames() const { return cropAllFrames_; }
+
     std::vector<LRASDPrediction> process(const std::vector<cv::Mat> &frames,
                                          const std::vector<float> &audio,
                                          int temporalRepeats)
     {
         const auto started=Clock::now();
         if (!frames.empty()) {
-            // Run detection only on the newest frame in this snapshot. The
-            // older queued frames are not redetected because they are already
-            // stale by the time this worker receives them.
-            updateTracks(frames.back(), std::max(1, temporalRepeats));
+            // By default, run detection only on the newest frame in this
+            // snapshot and repeat its crop for the elapsed frame slots. With
+            // LR_ASD_CROP_ALL_FRAMES=1, every new frame is detected and cropped.
+            if (cropAllFrames_ && frames.size() > 1) {
+                // Spread the elapsed 25 fps slots evenly over the new frames,
+                // so a slower camera still fills real time (lips stay aligned
+                // with the audio). Misses are counted once per update.
+                const size_t n=frames.size();
+                const int slots=std::max(1, temporalRepeats);
+                for (size_t i=0; i<n; ++i) {
+                    const int repeats=static_cast<int>(((i+1)*slots)/n - (i*slots)/n);
+                    if (repeats>0 || i+1==n)
+                        updateTracks(frames[i], std::max(1, repeats), i+1==n);
+                }
+            } else {
+                updateTracks(frames.back(), std::max(1, temporalRepeats));
+            }
         }
         std::vector<LRASDPrediction> predictions;
         if (audio.size()<3440 || tracks_.empty()) return predictions;
@@ -281,7 +302,7 @@ private:
         return kept;
     }
 
-    void updateTracks(const cv::Mat &frame, int temporalRepeats)
+    void updateTracks(const cv::Mat &frame, int temporalRepeats, bool countMisses=true)
     {
         auto boxes=detect(frame); std::vector<int> available,assigned;
         for(auto &[id,track]:tracks_) available.push_back(id);
@@ -302,7 +323,7 @@ private:
             assigned.push_back(id);
         }
         for(auto it=tracks_.begin();it!=tracks_.end();) {
-            if(std::find(assigned.begin(),assigned.end(),it->first)==assigned.end() && ++it->second.missed>10) it=tracks_.erase(it);
+            if(countMisses && std::find(assigned.begin(),assigned.end(),it->first)==assigned.end() && ++it->second.missed>10) it=tracks_.erase(it);
             else ++it;
         }
     }
@@ -313,6 +334,7 @@ private:
     std::string detectorName_;
     std::map<int,Track> tracks_; int nextTrack_=0; std::uint64_t calls_=0, processes_=0; double latencyMs_=0;
     bool verboseLog_=false;
+    bool cropAllFrames_=false;
 };
 
 LRASDWorker::LRASDWorker() = default;
@@ -349,9 +371,16 @@ std::vector<LRASDPrediction> LRASDWorker::latestPredictions() const
     return latestPredictions_;
 }
 
+LRASDResult LRASDWorker::latestResult() const
+{
+    std::lock_guard lock(predictionMutex_);
+    return {latestSequence_,latestFrameSize_,latestPredictions_};
+}
+
 void LRASDWorker::run()
 {
     const unsigned char *lastFrameData=nullptr;
+    std::optional<Clock::time_point> lastUpdateTime;
     while(running_) {
         VABuffer snapshot;
         {
@@ -370,10 +399,20 @@ void LRASDWorker::run()
         lastFrameData=allFrames.back().data;
         if(frames.empty()) continue;
         if(frames.size()>5) frames.erase(frames.begin(),frames.end()-5);
-        const int temporalRepeats=static_cast<int>(frames.size());
-        // Keep only the newest image for face detection. temporalRepeats tells
-        // LR-ASD how many video-frame slots elapsed since the previous update.
+        // LR-ASD's 25-frame window must cover one second, like its audio.
+        // Count the 25 fps slots from real elapsed time, not from the number
+        // of frames: the robot camera may deliver fewer than 25 frames/s.
+        const auto updateTime=Clock::now();
+        const double elapsedSeconds = lastUpdateTime
+            ? std::chrono::duration<double>(updateTime-*lastUpdateTime).count()
+            : frames.size()/25.0;
+        lastUpdateTime=updateTime;
+        const int temporalRepeats=static_cast<int>(std::clamp<long>(std::lround(elapsedSeconds*25.0),1,25));
+        // By default keep only the newest image for face detection;
+        // temporalRepeats tells LR-ASD how many video-frame slots elapsed since
+        // the previous update. LR_ASD_CROP_ALL_FRAMES=1 passes every new frame.
         std::vector<cv::Mat> newestFrame{frames.back()};
+        if (engine_->cropsAllFrames()) newestFrame=frames;
         std::vector<float> audio; audio.reserve(snapshot.AudioSignal.size());
         // scipy.io.wavfile.read supplies PCM16 magnitudes directly to the
         // official Python MFCC implementation; preserve that scale here.
@@ -381,10 +420,26 @@ void LRASDWorker::run()
             audio.push_back(static_cast<float>(snapshot.AudioSignal.front()));
             snapshot.AudioSignal.pop();
         }
+        {
+            // Microphone level of the newest second of audio, every ~5 s.
+            static int audioLogCounter=0;
+            if (++audioLogCounter%25==0 && !audio.empty()) {
+                const size_t n=std::min<size_t>(audio.size(),16000);
+                double sum=0, peak=0;
+                for (size_t i=audio.size()-n; i<audio.size(); ++i) { sum+=audio[i]*audio[i]; peak=std::max(peak,(double)std::abs(audio[i])); }
+                const double rms=std::sqrt(sum/n);
+                std::cout << "{\"component\":\"audio\",\"rms_dbfs\":" << std::fixed << std::setprecision(1)
+                          << 20*std::log10(std::max(rms,1.0)/32768.0) << ",\"peak_dbfs\":"
+                          << 20*std::log10(std::max(peak,1.0)/32768.0) << "}" << std::endl;
+                std::cout.unsetf(std::ios::fixed);
+            }
+        }
         try {
             auto predictions=engine_->process(newestFrame,audio,temporalRepeats);
             std::lock_guard lock(predictionMutex_);
             latestPredictions_=std::move(predictions);
+            latestFrameSize_=newestFrame.back().size();
+            ++latestSequence_;
         }
         catch(const std::exception &e) { std::cerr << "LR-ASD update failed: " << e.what() << '\n'; }
     }

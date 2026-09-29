@@ -40,6 +40,10 @@ message RobotCommand {
 
   //Barge-in support: interrupt whatever the robot is currently saying immediately.
   optional bool stop_speaking = 25;
+
+  //Active Speaker Following: Zenbo utility.lookAtUser(doa), using the DOA value
+  //exactly as Zenbo's voice detection reported it.
+  optional float look_at_user_doa = 26;
 }
 
 //The message that the robot sends to the server
@@ -52,4 +56,11 @@ message RobotToServerMessage {
   optional float                     yaw            = 6;           //why I cannot use float in my message?
   optional float                     pitch          = 7;
   optional string                    tabletcommand  = 8;
+
+  //Zenbo voice detection (RobotCallback.Listen.onVoiceDetect / onEventUserUtterance):
+  //raw direction of arrival, sound level and VAD status, sent with
+  //description "onVoiceDetect" or "onEventUserUtterance".
+  optional int32                     doa            = 9;
+  optional int32                     sound_level    = 10;
+  optional string                    vad_status     = 11;
 }

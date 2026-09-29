@@ -238,7 +238,9 @@ void MainWindow::UISetting(Ui::MainWindow *ui)
     // add move mode items
     QStringList strList_MoveMode;
 
-    ui->comboBox_MoveMode->addItems({"Manual", "Move body", "Move head"});
+    ui->comboBox_MoveMode->addItems({"Manual", "Move body", "Move head",
+                                     "Follow speaker (simulation)",
+                                     "Follow speaker (robot)"});
     connect(
         ui->comboBox_MoveMode,
         static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),

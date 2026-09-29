@@ -5,6 +5,7 @@
 #include "utility_directory.hpp"
 #include "utility_string.hpp"
 #include "utility_time.hpp"
+#include <iomanip>
 #include <iostream>
 #include <numeric> // std::iota
 #include <utility>
@@ -144,6 +145,10 @@ void ThreadProcessImage::run()
                                                             // channel order. I will convert it to RGB order before
                                                             // sending it to MediaPipe because MediaPipe uses RGB order.
     chrono::time_point<chrono::system_clock> previous_image_save_time;
+    // Camera throughput, logged every 5 s: frames processed and frames dropped
+    // because a newer frame had already arrived.
+    auto fps_window_start = std::chrono::steady_clock::now();
+    int fps_processed = 0, fps_dropped = 0;
     while (b_WhileLoop)
     {
         if (DataFrames_queue.size() > 0)
@@ -155,7 +160,9 @@ void ThreadProcessImage::run()
             while (DataFrames_queue.size() > 0)
             {
                 DataFrames_queue.pop(dataframe);
+                ++fps_dropped;
             }
+            --fps_dropped; // the last popped frame is processed
             char *data_ = dataframe.data.get();
             size_t data_length = dataframe.length;
 
@@ -727,7 +734,7 @@ void ThreadProcessImage::run()
                         // time interval between two messages.
                         if (duration.count() >= 1)
                         {
-                            if (action_option.move_mode != action_option.MOVE_MANUAL)
+                            if (action_option.poseTrackingEnabled())
                             {
                                 RobotCommandProtobuf::RobotCommand command;
                                 // This function is only avaialbe in the Kebbi folder. I need to
@@ -742,10 +749,11 @@ void ThreadProcessImage::run()
                     else
                     {
                         iNoPersonFrameCount++;
-                        // In manual mode, preserve the head angle selected by
-                        // the operator instead of silently returning to zero.
+                        // Only pose tracking returns the head to zero. Manual
+                        // mode keeps the operator's head angle, and Active
+                        // Speaker Following controls the head itself.
                         if (iNoPersonFrameCount > 30 &&
-                            action_option.move_mode != action_option.MOVE_MANUAL)
+                            action_option.poseTrackingEnabled())
                         {
                             RobotCommandProtobuf::RobotCommand command;
                             command.set_yaw(0);
@@ -760,7 +768,10 @@ void ThreadProcessImage::run()
                         auto elapsed_no_person =
                             std::chrono::duration_cast<std::chrono::milliseconds>(now - m_LastPersonDetectedTime)
                                 .count();
+                        // Active Speaker Following owns the body rotation, so
+                        // the compass must not turn the robot back to zero.
                         if (action_option.bUseVisualCompass &&
+                            !action_option.followSpeakerEnabled() &&
                             elapsed_no_person >= 1000 && !m_bBodyAtZero)
                         {
                             m_bTurningToZero = true;
@@ -820,6 +831,18 @@ void ThreadProcessImage::run()
             }
 
             iFrameCount++;
+            ++fps_processed;
+            const auto fps_now = std::chrono::steady_clock::now();
+            const double fps_seconds = std::chrono::duration<double>(fps_now - fps_window_start).count();
+            if (fps_seconds >= 5.0)
+            {
+                std::cout << "{\"component\":\"camera\",\"processed_fps\":"
+                          << std::fixed << std::setprecision(1) << fps_processed / fps_seconds
+                          << ",\"dropped_fps\":" << fps_dropped / fps_seconds << "}" << std::endl;
+                std::cout.unsetf(std::ios::fixed);
+                fps_window_start = fps_now;
+                fps_processed = fps_dropped = 0;
+            }
         } // if( pSocketBufferParser->get_queue_length() > 0 )
         msleep(1); // to prevent CPU usage too high
     } // while(b_WhileLoop)

@@ -105,8 +105,21 @@ public class SocketManager {
                                         //rotate only
                                         if (!command.hasX() && !command.hasY() && command.hasDegree()) {
                                             Log.d("rotate body", command.toString());
-                                            int serial = mRobotAPI.motion.moveBody(0.0f, 0.0f, command.getDegree());
+                                            int serial;
+                                            if (command.hasBodyspeed() && command.getBodyspeed() >= 1 && command.getBodyspeed() <= 7) {
+                                                // Active Speaker Following may request a slower, smoother turn.
+                                                MotionControl.SpeedLevel.Body bodySpeed =
+                                                        MotionControl.SpeedLevel.Body.values()[command.getBodyspeed() - 1];
+                                                serial = mRobotAPI.motion.moveBody(0.0f, 0.0f, command.getDegree(), bodySpeed);
+                                            } else {
+                                                serial = mRobotAPI.motion.moveBody(0.0f, 0.0f, command.getDegree());
+                                            }
                                             //The serial number will appear in the callback function.
+                                        }
+                                        if (command.hasLookAtUserDoa()) {
+                                            // Zenbo's built-in turn toward a voice, with the DOA it reported.
+                                            Log.d("look at user", "doa " + command.getLookAtUserDoa());
+                                            mRobotAPI.utility.lookAtUser(command.getLookAtUserDoa());
                                         }
                                         if (command.hasYaw()) {
                                             MotionControl.SpeedLevel.Head speed;

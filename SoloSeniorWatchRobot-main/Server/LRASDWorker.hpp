@@ -2,6 +2,7 @@
 
 #include "VideoAudioBuffer.hpp"
 #include <atomic>
+#include <cstdint>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -20,6 +21,15 @@ struct LRASDPrediction
     cv::Rect faceBox;
 };
 
+// One LR-ASD update: the predictions, the size of the frame their boxes refer
+// to, and a sequence number that increases with every update.
+struct LRASDResult
+{
+    std::uint64_t sequence = 0;
+    cv::Size frameSize;
+    std::vector<LRASDPrediction> predictions;
+};
+
 class LRASDWorker
 {
 public:
@@ -31,6 +41,7 @@ public:
     bool start(const std::string &modelDirectory);
     void submit(VABuffer snapshot);
     std::vector<LRASDPrediction> latestPredictions() const;
+    LRASDResult latestResult() const;
     void stop();
 
 private:
@@ -43,4 +54,6 @@ private:
     std::optional<VABuffer> pendingInput_;
     mutable std::mutex predictionMutex_;
     std::vector<LRASDPrediction> latestPredictions_;
+    std::uint64_t latestSequence_ = 0;
+    cv::Size latestFrameSize_;
 };

@@ -9,6 +9,7 @@
 #include <mutex>
 #include <thread>
 #include <condition_variable>
+#include <functional>
 #include "SendMessageManager.hpp"
 #include "SocketBufferParser.hpp"
 #include "ThreadStateControl.hpp"
@@ -35,6 +36,9 @@ public:
     ThreadProcessImage *mpThreadProcessImage;
     ThreadWhisper *mpWhisper;
     Logger *mpLogger;
+    // Called for every Zenbo voice-detection event that carries a direction of
+    // arrival (raw SDK value). Set before the thread starts.
+    std::function<void(int doa)> onVoiceDirection;
 
     void SetRobotModel(string sRobotModel)
     {

@@ -93,6 +93,7 @@ set(OLLAMA_HPP_INCLUDE_DIR "${SoloSeniorWatchRobot_BUILD_DIR}/ollama-hpp/include
 set(ONNX_HPP_INCLUDE_DIR "${SoloSeniorWatchRobot_BUILD_DIR}/${ONNX_DIR_NAME}/include")
 set(SILERO_HPP_INCLUDE_DIR "${SoloSeniorWatchRobot_BUILD_DIR}/silero-vad/examples/cpp")
 set(SOURCES AnythingLLM.cpp
+            ActiveSpeakerFollower.cpp
             GetLandmarks.cpp
             JPEG.cpp
             LRASDWorker.cpp
@@ -253,3 +254,12 @@ elseif(ROBOT_MODEL STREQUAL "Zenbo")
 else()
   message(FATAL_ERROR "Please set the robot model")
 endif()
+
+# Active Speaker Following: decision-logic unit tests and offline replay.
+# These targets have no Qt/OpenCV/robot dependencies.
+enable_testing()
+add_executable(active_speaker_follower_test ActiveSpeakerFollower.cpp tests/test_active_speaker_follower.cpp)
+target_include_directories(active_speaker_follower_test PRIVATE ${CMAKE_SOURCE_DIR})
+add_test(NAME active_speaker_follower_test COMMAND active_speaker_follower_test)
+add_executable(active_speaker_replay ActiveSpeakerFollower.cpp tests/active_speaker_replay.cpp)
+target_include_directories(active_speaker_replay PRIVATE ${CMAKE_SOURCE_DIR})
