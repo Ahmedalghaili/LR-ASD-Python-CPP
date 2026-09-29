@@ -26,6 +26,9 @@ import tw.edu.cgu.ai.RobotCommandOuterClass;
 
 public class SocketManager {
     public ZenboCallback robotCallback;     // used to report PoC results to the server
+    // Compatibility PoC: "mic_off" releases the app's microphone so that
+    // Zenbo's own listening can use it; "mic_on" records again.
+    public volatile boolean micEnabled = true;
 
     private void report(String text) {
         if (robotCallback != null)
@@ -86,6 +89,11 @@ public class SocketManager {
                     break;
                 case "track_user":
                     result = mRobotAPI.utility.trackUser();
+                    break;
+                case "mic_off":
+                case "mic_on":
+                    micEnabled = action.equals("mic_on");
+                    result = "ok";
                     break;
                 case "cancel_all":
                     result = mRobotAPI.cancelCommandAll();

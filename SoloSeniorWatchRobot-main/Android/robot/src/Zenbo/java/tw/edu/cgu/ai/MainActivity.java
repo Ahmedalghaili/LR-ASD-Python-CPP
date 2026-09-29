@@ -370,6 +370,20 @@ public class MainActivity extends Activity {
                     while (status) {
                         long now = System.currentTimeMillis();
                         boolean connected = socketManager.isConnected();
+                        // Test switch (poc_action mic_off / mic_on): free the microphone completely.
+                        if (!socketManager.micEnabled && recorder != null) {
+                            try {
+                                if (recorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING)
+                                    recorder.stop();
+                            } catch (Exception ignored) {
+                            }
+                            recorder.release();
+                            recorder = null;
+                        }
+                        if (socketManager.micEnabled && recorder == null
+                                && checkSelfPermission(PERMISSION_RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10);
+                        }
                         // A recorder made while the microphone was busy never works: make a new one.
                         if (recorder != null && recorder.getState() != AudioRecord.STATE_INITIALIZED
                                 && now - lastStartTry > 5000) {
@@ -392,7 +406,8 @@ public class MainActivity extends Activity {
                         // Tell the server every 5 s what the microphone is doing.
                         if (connected && now - lastReport > 5000 && robotCallback != null) {
                             lastReport = now;
-                            robotCallback.sendText("audio_status permission="
+                            robotCallback.sendText("audio_status mic=" + (socketManager.micEnabled ? "on" : "OFF(test)")
+                                    + " permission="
                                     + (checkSelfPermission(PERMISSION_RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED ? "yes" : "NO")
                                     + " recorder=" + (r == null ? "none" : r.getState() == AudioRecord.STATE_INITIALIZED ? "ready" : "FAILED")
                                     + " recording=" + (r != null && r.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING ? "yes" : "NO")

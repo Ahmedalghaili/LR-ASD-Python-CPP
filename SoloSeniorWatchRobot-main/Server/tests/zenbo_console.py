@@ -12,7 +12,7 @@ and lets you drive the robot with the keyboard.
 Keys (click the window first):
   L  Zenbo listens once (speakAndListen)      S  stop listening
   T  turn to the last voice (lookAtUser)      A  auto: listen + turn, on/off
-  W  "Hey Zenbo" wake word on/off
+  W  "Hey Zenbo" wake word on/off           M  app microphone off/on (test)
   Z / X  head left / right (15 deg)            R / F  head up / down
   B / N  body left / right (20 deg)            C  head to centre
   Q  quit
@@ -89,6 +89,7 @@ class Console:
         self.head_yaw, self.head_pitch = 0, 30
         self.auto = False
         self.wake_word = False
+        self.mic_on = True
         self.listening_since = None   # our speakAndListen that has not finished
         self.last_voice_t = 0         # last voice event from Zenbo
         self.last_vad = ""
@@ -194,6 +195,10 @@ class Console:
             self.add_log(f"AUTO mode {'ON: speak, Zenbo turns to you' if self.auto else 'OFF'}", YELLOW)
             if self.auto:
                 self.last_turn_t = 0
+        elif k == "m":
+            self.mic_on = not self.mic_on
+            self.do(f"app microphone {'ON' if self.mic_on else 'OFF (test: frees the mic for Zenbo)'}",
+                    poc_action="mic_on" if self.mic_on else "mic_off")
         elif k == "w":
             self.wake_word = not self.wake_word
             self.do(f"wake word {'on' if self.wake_word else 'off'}",
@@ -225,6 +230,8 @@ class Console:
             return "Open Zenbo Nurse Helper V2 and connect to this PC (port 8895).", YELLOW
         if fps < 1:
             return "Connected, but no camera images: check camera permission of V2.", RED
+        if not audio and not self.mic_on:
+            return "App microphone OFF (test). Press L and speak: does Zenbo hear you now?", YELLOW
         if not audio:
             st = self.audio_status if now - self.audio_status_t < 12 else ""
             if "permission=NO" in st:
@@ -236,6 +243,8 @@ class Console:
             if not st:
                 return "No microphone sound, and no mic report: install the newest V2 app.", RED
             return "No microphone sound from the app.", RED
+        if self.listening_since and now - self.listening_since > 8 and now - self.last_voice_t > 8:
+            return "Zenbo says listening but reports nothing. Try M (app mic off), then L.", YELLOW
         if self.listening_since and now - self.last_voice_t > 3:
             return "Zenbo is LISTENING: speak now (a full sentence).", GREEN
         if now - self.last_doa_t < 4 and self.last_doa is not None:
@@ -287,7 +296,8 @@ class Console:
         row("Zenbo listening", "YES - speak" if listening else "no (press L)", listening)
         heard = now - self.last_voice_t < 5
         row("Zenbo heard voice", self.last_vad if heard else "-", heard)
-        row("Wake word / Auto", f"{'on' if self.wake_word else 'off'} / {'ON' if self.auto else 'off'}", self.auto)
+        row("Wake word / Auto / Mic", f"{'on' if self.wake_word else 'off'} / {'ON' if self.auto else 'off'}"
+            f" / {'on' if self.mic_on else 'OFF'}", self.auto)
         row("Head yaw / pitch", f"{self.head_yaw:+d} / {self.head_pitch}", True)
         st = self.audio_status.replace("audio_status ", "") if now - self.audio_status_t < 12 else "no report"
         cv2.putText(canvas, "Mic on robot: " + st[:60], (x, y), FONT, 0.45,
@@ -314,7 +324,7 @@ class Console:
             cv2.putText(canvas, time.strftime("%H:%M:%S ", time.localtime(t)) + line[:110], (25, y),
                         FONT, 0.5, col, 1)
             y += 20
-        cv2.putText(canvas, "Keys: L listen  S stop  T turn to voice  A auto  W wake word  "
+        cv2.putText(canvas, "Keys: L listen  S stop  T turn  A auto  W wake word  M app mic  "
                     "Z/X head L/R  R/F head up/down  B/N body L/R  C centre  Q quit",
                     (25, H - 8), FONT, 0.5, YELLOW, 1)
         return canvas
