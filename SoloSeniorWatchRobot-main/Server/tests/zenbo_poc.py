@@ -365,6 +365,21 @@ def step_calibrate(link, args):
     from the front, its left, its right and behind, and records the onDOA
     values of each position (during speak-and-listen)."""
     link.send(poc_action="states_on")
+    # The app turns the voice trigger off at start-up; in the voice test,
+    # listening events only arrived after it had been switched on and off.
+    link.send(poc_action="voice_trigger_on")
+    time.sleep(2)
+    link.send(poc_action="voice_trigger_off")
+    time.sleep(1)
+    t_check = time.time()
+    link.send(poc_action="speak_and_listen")
+    time.sleep(5)
+    link.send(poc_action="stop_listen")
+    with link.lock:
+        listening = [m for t, m in link.messages
+                     if t >= t_check and m["description"] in ("onVoiceDetect", "onEventUserUtterance")]
+    print(f"calibrate: listening check: {len(listening)} voice events "
+          f"({'OK' if listening else 'NONE - Zenbo is not reporting listening'})", flush=True)
     positions = (("front", "Please stand in front of me."),
                  ("left", "Now please stand on my left side."),
                  ("right", "Now please stand on my right side."),
@@ -393,23 +408,59 @@ def step_calibrate(link, args):
 
 
 def step_look(link, args):
+    """Real turning: Zenbo listens (speak-and-listen, restarted every few
+    seconds); each onDOA report is answered with utility.lookAtUser(doa),
+    Zenbo's own turn toward that voice. Camera health is recorded."""
     link.send(poc_action="states_on")
-    link.send(poc_action="voice_trigger_on")
-    t0 = time.time()
-    turns = 0
-    seen = 0
-    while time.time() - t0 < args.seconds:
-        with link.lock:
-            doas = [(t, m["doa"]) for t, m in link.messages if "doa" in m and t > t0]
-        if len(doas) > seen:
-            seen = len(doas)
-            link.send(look_at_user_doa=float(doas[-1][1]))
-            turns += 1
-            time.sleep(4)
-        time.sleep(0.2)
+    link.send(poc_action="voice_trigger_on")  # see step_calibrate
+    time.sleep(2)
     link.send(poc_action="voice_trigger_off")
+    link.send(speak_sentence="Talk to me from any side, and I will turn to you.")
+    time.sleep(4)
+    t0 = time.time()
+    turns = []
+    seen = t0
+    next_listen = t0
+    last_listen = 0
+    while time.time() - t0 < args.seconds:
+        now = time.time()
+        with link.lock:
+            new = [(t, m["doa"]) for t, m in link.messages
+                   if t > seen and m.get("vad_status") == "onDOA" and "doa" in m]
+        if new:
+            seen = new[-1][0]
+            doa = new[-1][1]
+            link.send(poc_action="stop_listen")
+            link.send(look_at_user_doa=float(doa))
+            turns.append({"t": round(now - t0, 1), "doa": doa})
+            print(f"look: voice at DOA {doa} -> lookAtUser({doa})", flush=True)
+            time.sleep(4)  # let the turn finish
+            next_listen = time.time()
+            last_listen = 0
+        elif now >= next_listen:
+            # One listen at a time: start the next only when the previous
+            # one finished (SUCCEED/FAILED) or after 12 s with a stop.
+            with link.lock:
+                done = any(t > last_listen and "DS_SPEAK_AND_LISTEN" in m["description"]
+                           and ("SUCCEED" in m["description"] or "FAILED" in m["description"])
+                           for t, m in link.messages)
+            if last_listen and not done and now - last_listen < 12:
+                next_listen = now + 0.5
+            else:
+                if last_listen and not done:
+                    link.send(poc_action="stop_listen")
+                    time.sleep(1)
+                link.send(poc_action="speak_and_listen")
+                last_listen = time.time()
+                next_listen = last_listen + 1
+        time.sleep(0.2)
+    link.send(poc_action="stop_listen")
     link.send(poc_action="states_off")
-    r = {"step": "look", "look_at_user_calls": turns, **link.stats(t0, time.time())}
+    with link.lock:
+        problems = [m["description"] for t, m in link.messages
+                    if t >= t0 and m["description"].startswith(("camera_", "robot_state cmd=UTILITY"))]
+    r = {"step": "look", "turns": turns, "robot_reports": problems[-20:],
+         **link.stats(t0, time.time())}
     print(json.dumps(r), flush=True)
     return [r]
 
