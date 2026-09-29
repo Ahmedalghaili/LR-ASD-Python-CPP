@@ -71,6 +71,9 @@ class Link:
         self.audio_bytes = 0
         self.messages = []        # (t, dict)
         self.connected = threading.Event()
+        self.disconnects = []     # (t, step) when the robot app dropped the link
+        self.current_step = ""
+        self.connections = 0
         for name, port in PORTS.items():
             srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -86,6 +89,7 @@ class Link:
             if name == "command":
                 with self.lock:
                     self.cmd_sock = conn
+                    self.connections += 1
                 self.connected.set()
             else:
                 target = {"image": self._images, "audio": self._audio,
@@ -168,12 +172,46 @@ class Link:
 
     def send(self, **fields):
         cmd = pb.RobotCommand(**fields)
+        data = HEAD + cmd.SerializeToString() + TAIL
+        for attempt in range(2):
+            with self.lock:
+                sock = self.cmd_sock
+            try:
+                if sock is None:
+                    raise OSError("not connected")
+                sock.sendall(data)
+                print(f"[send] {fields}", flush=True)
+                return True
+            except OSError:
+                if attempt == 0 and not self.wait_reconnect():
+                    break
+        print(f"[send] FAILED {fields}", flush=True)
+        return False
+
+    def wait_reconnect(self, timeout=90):
+        """The robot app dropped the link: wait for it to connect again."""
         with self.lock:
-            sock = self.cmd_sock
-        if sock is None:
-            raise RuntimeError("the robot command socket is not connected")
-        sock.sendall(HEAD + cmd.SerializeToString() + TAIL)
-        print(f"[send] {fields}", flush=True)
+            self.cmd_sock = None
+            before = self.connections
+        self.disconnects.append((round(time.time(), 1), self.current_step))
+        print(f"[link] robot disconnected during '{self.current_step}'; "
+              f"waiting up to {timeout} s for the app to reconnect ...", flush=True)
+        end = time.time() + timeout
+        while time.time() < end:
+            with self.lock:
+                if self.connections > before and self.cmd_sock is not None:
+                    break
+            time.sleep(0.5)
+        else:
+            print("[link] the robot did not reconnect", flush=True)
+            return False
+        time.sleep(4)  # let the camera stream start again
+        print("[link] robot reconnected", flush=True)
+        return True
+
+    def stream_alive(self, seconds=2.0):
+        with self.lock:
+            return bool(self.frame_times) and time.time() - self.frame_times[-1] < seconds
 
     def latest_frame(self):
         with self.lock:
@@ -209,6 +247,9 @@ def image_shift(a, b):
 
 def measure(link, command, settle, label):
     """Send a command and measure how the camera view moved."""
+    link.current_step = label
+    if not link.stream_alive() and not link.wait_reconnect():
+        return {"step": label, "command": command, "error": "robot not connected"}
     time.sleep(0.3)
     _, before = link.latest_frame()
     t0 = time.time()
@@ -217,6 +258,10 @@ def measure(link, command, settle, label):
     t1 = time.time()
     _, after = link.latest_frame()
     result = {"step": label, "command": command, **link.stats(t0, t1)}
+    if not link.stream_alive():
+        result["error"] = "camera stream stopped after this command (app disconnected?)"
+        print(json.dumps(result), flush=True)
+        return result
     if before is None or after is None:
         result["error"] = "no camera frames"
         return result
@@ -247,7 +292,8 @@ def step_head(link, args):
     limit = min(abs(args.max_yaw), 45)
     results = [measure(link, {"yaw": 0, "pitch": START_PITCH, "headspeed": 2}, args.settle,
                        "head home")]
-    for yaw in (15, 30, 15, 0, -15, -30, -15, 0):
+    # Every move starts from the centre, and the size grows slowly.
+    for yaw in (10, 0, -10, 0, 20, 0, -20, 0, 30, 0, -30, 0):
         yaw = max(-limit, min(limit, yaw))
         results.append(measure(link, {"yaw": yaw, "pitch": START_PITCH, "headspeed": 2},
                                args.settle, f"head yaw {yaw:+d}"))
@@ -400,10 +446,12 @@ def main():
             link.send(yaw=0, pitch=START_PITCH, headspeed=2)  # head back home
         except Exception as exc:
             print("could not return the head home:", exc)
-    report = {"results": results, "summary": summarize(results)}
+    report = {"results": results, "summary": summarize(results),
+              "disconnects": link.disconnects}
     with open(args.report, "w") as f:
         json.dump(report, f, indent=1)
     print("=== summary\n" + json.dumps(report["summary"], indent=1))
+    print("disconnects:", link.disconnects)
     print(f"report saved in {args.report}")
     time.sleep(1)
 

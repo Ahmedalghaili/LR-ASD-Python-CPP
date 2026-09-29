@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Zenbo Nurse Helper V2: same as the Zenbo flavour, with its own name. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:label="Zenbo Nurse Helper V2"
+        tools:replace="android:label">
+        <activity
+            android:name="tw.edu.cgu.ai.MainActivity"
+            android:label="Zenbo Nurse Helper V2"
+            tools:replace="android:label"
+            tools:node="merge">
+            <intent-filter tools:node="replace">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="com.asus.intent.category.ZENBO" />
+                <category android:name="com.asus.intent.category.ZENBO_LAUNCHER" />
+                <category android:name="com.asus.intent.data.MIN_ROBOT_API_LEVEL.1" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

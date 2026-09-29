@@ -34,6 +34,23 @@ android {
                 }
             }
         }
+        // Version 2 of the Zenbo app (DOA forwarding, lookAtUser, compatibility
+        // tests). Same code as Zenbo, but its own package and name, so it
+        // installs next to the original Zenbo Nurse Helper.
+        ZenboV2{
+            dimension 'RobotType'
+            minSdk 23
+            targetSdkVersion 23
+            versionName 'v2.2026.09.29'
+            versionCode 12
+            applicationIdSuffix ".zenbo.v2"
+            versionNameSuffix "-zenbo-v2"
+            externalNativeBuild {
+                cmake {
+                    cppFlags ""
+                }
+            }
+        }
         ZenboJrII{
             dimension 'RobotType'
             minSdk 29
@@ -77,6 +94,11 @@ android {
                 srcDir 'src/main/proto'
             }
         }
+        ZenboV2{
+            java.srcDirs = ['src/Zenbo/java']
+            res.srcDirs = ['src/Zenbo/res']
+            manifest.srcFile 'src/ZenboV2/AndroidManifest.xml'
+        }
     }
 
     protobuf {
@@ -107,6 +129,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     KebbiImplementation (name:'NuwaSDK-2021-07-08_1058_2.1.0.08_e21fe7', ext:'aar')
     ZenboJrIIImplementation (name:'ZenboJuniorSDK', ext:'jar')
+    ZenboImplementation (name:'ZenboSDK', ext:'jar')
+    ZenboV2Implementation (name:'ZenboSDK', ext:'jar')
     implementation 'com.google.protobuf:protobuf-javalite:3.19.1'
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
 
