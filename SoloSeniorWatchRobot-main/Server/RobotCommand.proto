@@ -44,6 +44,11 @@ message RobotCommand {
   //Active Speaker Following: Zenbo utility.lookAtUser(doa), using the DOA value
   //exactly as Zenbo's voice detection reported it.
   optional float look_at_user_doa = 26;
+  //Compatibility proof of concept (Zenbo flavour, tests/zenbo_poc.py): a named
+  //test action such as "always_listen_on", "doa_monitor_on", "track_user",
+  //"voice_trigger_on", "speak_and_listen", "states_on", "cancel_all".
+  //The robot answers with a RobotToServerMessage "poc_result ...".
+  optional string poc_action = 27;
 }
 
 //The message that the robot sends to the server

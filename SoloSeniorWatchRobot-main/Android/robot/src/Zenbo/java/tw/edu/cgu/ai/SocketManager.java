@@ -25,6 +25,84 @@ import java.util.Arrays;
 import tw.edu.cgu.ai.RobotCommandOuterClass;
 
 public class SocketManager {
+    public ZenboCallback robotCallback;     // used to report PoC results to the server
+
+    private void report(String text) {
+        if (robotCallback != null)
+            robotCallback.sendText(text);
+    }
+
+    // ExtraMethod is not exposed by RobotAPI; build it from RobotAPI's intercom.
+    private Object extraMethod() throws Exception {
+        java.lang.reflect.Field field = RobotAPI.class.getDeclaredField("intercom");
+        field.setAccessible(true);
+        Object intercom = field.get(mRobotAPI);
+        Class<?> intercomClass = Class.forName("com.asus.robotframework.API.RobotIntercom");
+        java.lang.reflect.Constructor<?> constructor =
+                Class.forName("com.asus.robotframework.API.ExtraMethod").getDeclaredConstructor(intercomClass);
+        constructor.setAccessible(true);
+        return constructor.newInstance(intercom);
+    }
+
+    private Object callExtra(String method, Class<?>[] types, Object... args) throws Exception {
+        Object extra = extraMethod();
+        java.lang.reflect.Method m = extra.getClass().getDeclaredMethod(method, types);
+        m.setAccessible(true);
+        return m.invoke(extra, args);
+    }
+
+    // Compatibility proof of concept (tests/zenbo_poc.py). Each action reports
+    // its return value (a command serial, or an error) to the server.
+    private void runPocAction(String action) {
+        Object result;
+        try {
+            switch (action) {
+                case "states_on":
+                case "states_off":
+                    if (robotCallback != null)
+                        robotCallback.forwardStates = action.equals("states_on");
+                    result = "ok";
+                    break;
+                case "always_listen_on":
+                case "always_listen_off":
+                    result = callExtra("enableAlwaysListenMode", new Class<?>[]{boolean.class},
+                            action.equals("always_listen_on"));
+                    break;
+                case "doa_monitor_on":
+                    result = callExtra("registerDoaMonitor", new Class<?>[]{});
+                    break;
+                case "doa_monitor_off":
+                    result = callExtra("unregisterDoaMonitor", new Class<?>[]{});
+                    break;
+                case "voice_trigger_on":
+                case "voice_trigger_off":
+                    result = mRobotAPI.robot.setVoiceTrigger(action.equals("voice_trigger_on"));
+                    break;
+                case "speak_and_listen":
+                    result = mRobotAPI.robot.speakAndListen("", new SpeakConfig().timeout(10));
+                    break;
+                case "stop_listen":
+                    result = mRobotAPI.robot.stopSpeakAndListen();
+                    break;
+                case "track_user":
+                    result = mRobotAPI.utility.trackUser();
+                    break;
+                case "cancel_all":
+                    result = mRobotAPI.cancelCommandAll();
+                    break;
+                case "sdk_version":
+                    result = RobotAPI.getVersion();
+                    break;
+                default:
+                    result = "unknown action";
+            }
+        } catch (Throwable e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            result = "error " + cause.getClass().getSimpleName() + ": " + cause.getMessage();
+        }
+        report("poc_result action=" + action + " result=" + result);
+    }
+
     public String mServerURL;
     public Integer mPortNumber;
 
@@ -108,7 +186,12 @@ public class SocketManager {
                                         //rotate only
                                         if (!command.hasX() && !command.hasY() && command.hasDegree()) {
                                             Log.d("rotate body", command.toString());
-                                            int serial = mRobotAPI.motion.moveBody(0.0f, 0.0f, command.getDegree());
+                                            int serial;
+                                            if (command.hasBodyspeed() && command.getBodyspeed() >= 1 && command.getBodyspeed() <= 7)
+                                                serial = mRobotAPI.motion.moveBody(0.0f, 0.0f, command.getDegree(),
+                                                        MotionControl.SpeedLevel.Body.values()[command.getBodyspeed() - 1]);
+                                            else
+                                                serial = mRobotAPI.motion.moveBody(0.0f, 0.0f, command.getDegree());
                                             //The serial number will appear in the callback function.
                                         }
                                         if (command.hasYaw()) {
@@ -124,6 +207,13 @@ public class SocketManager {
                                                     speed = MotionControl.SpeedLevel.Head.L3;
                                             }
                                             mRobotAPI.motion.moveHead(command.getYaw(), command.getPitch(), speed);
+                                        }
+                                        if (command.hasLookAtUserDoa()) {
+                                            int serial = mRobotAPI.utility.lookAtUser(command.getLookAtUserDoa());
+                                            report("poc_result action=look_at_user doa=" + command.getLookAtUserDoa() + " serial=" + serial);
+                                        }
+                                        if (command.hasPocAction()) {
+                                            runPocAction(command.getPocAction());
                                         }
                                         if( command.hasSface() && command.hasSpeakSentence())
                                         {

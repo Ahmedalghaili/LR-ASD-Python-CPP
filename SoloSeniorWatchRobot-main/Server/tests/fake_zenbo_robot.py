@@ -58,6 +58,7 @@ class Robot:
         self.yaw = 0.0            # current body yaw, + = turned left
         self.target_yaw = 0.0
         self.pitch = CONNECT_PITCH
+        self.head_yaw = 0.0       # original Zenbo head yaw, + = right (ASUS docs)
         self.face = None
         self.lock = threading.Lock()
 
@@ -68,7 +69,7 @@ class Robot:
             self.yaw += max(-m, min(m, delta))
 
 
-def read_commands(sock, robot, log, t0):
+def read_commands(sock, robot, log, t0, messages=None):
     buf = bytearray()
     while True:
         try:
@@ -94,6 +95,7 @@ def read_commands(sock, robot, log, t0):
                     entry["rotate"] = cmd.degree
                 if cmd.HasField("yaw"):
                     robot.pitch = cmd.pitch
+                    robot.head_yaw = max(-45, min(45, cmd.yaw))
                     entry["head"] = [cmd.yaw, cmd.pitch]
                 if cmd.HasField("face"):
                     robot.face = cmd.face
@@ -103,7 +105,15 @@ def read_commands(sock, robot, log, t0):
                     entry["look_at_user_doa"] = round(cmd.look_at_user_doa, 1)
                 if cmd.HasField("bodyspeed"):
                     entry["bodyspeed"] = cmd.bodyspeed
+                if cmd.HasField("poc_action"):
+                    entry["poc_action"] = cmd.poc_action
                 entry["body_yaw_target"] = robot.target_yaw
+            if messages is not None and cmd.HasField("poc_action"):
+                reply = pb.RobotToServerMessage()
+                reply.event_time.GetCurrentTime()
+                reply.description = f"poc_result action={cmd.poc_action} result=simulated"
+                rp = reply.SerializeToString()
+                messages.sendall(HEAD + len(rp).to_bytes(4, "little") + rp + TAIL)
             log.write(json.dumps(entry) + "\n")
             log.flush()
             print("robot received", entry, flush=True)
@@ -113,6 +123,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video")
     ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--port-offset", type=int, default=0, help="connect to 8895+N ...")
+    ap.add_argument("--loop", action="store_true", help="restart the video when it ends")
     ap.add_argument("--seconds", type=float, default=0)
     ap.add_argument("--log", default="fake_zenbo_commands.jsonl")
     ap.add_argument("--window", type=float, default=0.75,
@@ -128,15 +140,17 @@ def main():
                     "-f", "s16le", wav], check=True)
     audio = np.fromfile(wav, np.int16)
 
-    images = connect(args.host, 8895)
-    commands = connect(args.host, 8896)
-    sound = connect(args.host, 8897)
-    messages = connect(args.host, 8898)  # the robot app opens all four sockets
+    base = 8895 + args.port_offset
+    images = connect(args.host, base)
+    commands = connect(args.host, base + 1)
+    sound = connect(args.host, base + 2)
+    messages = connect(args.host, base + 3)  # the robot app opens all four sockets
 
     robot = Robot()
     t0 = time.time()
     log = open(args.log, "w")
-    threading.Thread(target=read_commands, args=(commands, robot, log, t0), daemon=True).start()
+    threading.Thread(target=read_commands, args=(commands, robot, log, t0, messages),
+                     daemon=True).start()
 
     cap = cv2.VideoCapture(args.video)
     src_fps = cap.get(cv2.CAP_PROP_FPS) or FPS
@@ -165,11 +179,16 @@ def main():
     frame = None
     src_index = -1
     sent = 0
+    loop_start = 0  # frame number `sent` at which the current pass began
     next_time = time.time()
     while sent < total:
-        want = int(sent / FPS * src_fps)  # resample the source to 25 fps
+        want = int((sent - loop_start) / FPS * src_fps)  # resample the source to 25 fps
         while src_index < want:
             ok, f = cap.read()
+            if not ok and args.loop and src_index >= 0:
+                cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                loop_start, src_index, want = sent, -1, 0
+                continue
             if not ok:
                 break
             frame, src_index = f, src_index + 1
@@ -177,7 +196,8 @@ def main():
             break
         robot.step(1.0 / FPS)
         with robot.lock:
-            yaw, pitch = robot.yaw, robot.pitch
+            # Head yaw (+ = right) adds to the body yaw (+ = left).
+            yaw, pitch = robot.yaw - robot.head_yaw, robot.pitch
         # Turning left (+yaw) moves the view window left in the world image;
         # tilting the head up (+pitch) moves it up. The video centre is what
         # the camera sees at yaw 0 and the connect pitch.
@@ -212,7 +232,8 @@ def main():
             vp = vmsg.SerializeToString()
             messages.sendall(HEAD + len(vp).to_bytes(4, "little") + vp + TAIL)
             doa_sent += 1
-        a = audio[sent * samples_per_frame:(sent + 1) * samples_per_frame]
+        pos = (sent * samples_per_frame) % max(len(audio), 1) if args.loop else sent * samples_per_frame
+        a = audio[pos:pos + samples_per_frame]
         if len(a):
             sound.sendall(a.tobytes())
         sent += 1

@@ -159,6 +159,9 @@ public class MainActivity extends Activity {
 
                 @Override
                 public void onDisconnected(final CameraDevice cd) {
+                    // Another client (e.g. Zenbo's own vision) took the camera.
+                    if (robotCallback != null)
+                        robotCallback.sendText("camera_disconnected");
                     cameraOpenCloseLock.release();
                     cd.close();    //2025/1/6 This function is not called.
                     mCameraDevice = null;
@@ -166,6 +169,8 @@ public class MainActivity extends Activity {
 
                 @Override
                 public void onError(final CameraDevice cd, final int error) {
+                    if (robotCallback != null)
+                        robotCallback.sendText("camera_error " + error);
                     cameraOpenCloseLock.release();
                     cd.close();
                     mCameraDevice = null;
@@ -218,6 +223,7 @@ public class MainActivity extends Activity {
 
         robotCallback = new ZenboCallback();
         robotCallback.socketManager = socketManager;
+        socketManager.robotCallback = robotCallback;
         mRobotAPI = new RobotAPI(this, robotCallback);
         mRobotAPI.robot.registerListenCallback(robotCallback);
         socketManager.mRobotAPI = mRobotAPI;
