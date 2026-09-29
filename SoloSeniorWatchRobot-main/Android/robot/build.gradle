@@ -85,6 +85,16 @@ android {
     }
     namespace 'tw.edu.cgu.ai'
 
+    // Builds native-lib (camera YUV/RGB conversion in src/main/jni), which
+    // ImageListener loads at start-up. Without it the app crashes on launch.
+    ndkVersion '28.2.13676358'
+    externalNativeBuild {
+        cmake {
+            path 'CMakeLists.txt'
+            version '3.31.6'
+        }
+    }
+
     sourceSets{
         main{
             java {

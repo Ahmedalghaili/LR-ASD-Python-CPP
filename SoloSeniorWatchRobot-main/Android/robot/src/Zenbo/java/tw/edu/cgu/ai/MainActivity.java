@@ -256,7 +256,10 @@ public class MainActivity extends Activity {
                     editor.putString("ServerURL", editText_Server.getText().toString());
                     editor.apply();
 
-                    recorder.startRecording();    //The recorder means the audio recorder
+                    if (recorder != null && recorder.getState() == AudioRecord.STATE_INITIALIZED)
+                        recorder.startRecording();    //The recorder means the audio recorder
+                    else
+                        Toast.makeText(MainActivity.this, "Microphone permission missing: no audio", Toast.LENGTH_LONG).show();
                     socketManager.mServerURL = editText_Server.getText().toString();
                     socketManager.mPortNumber = Integer.parseInt(editText_Port.getText().toString());
                     Log.d("Record", "Before call connectSockets");
@@ -284,7 +287,8 @@ public class MainActivity extends Activity {
                 else {
                     //2025/1/3 the recorder should stop in onPause()
 //                    mbReceiveCommand = false;   //the app should not mSocketReceiveResults.getInputStream()
-                    recorder.stop();
+                    if (recorder != null && recorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING)
+                        recorder.stop();
                     socketManager.stopReceiveCommands();
                     socketManager.disconnectSockets();
                 }
@@ -334,7 +338,13 @@ public class MainActivity extends Activity {
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
         decorView.setSystemUiVisibility(uiOptions);
 
-        if(recorder == null) {
+        // A recorder made before RECORD_AUDIO was granted (first start of a
+        // fresh install) never works; make a new one once permission exists.
+        if (recorder != null && recorder.getState() != AudioRecord.STATE_INITIALIZED) {
+            recorder.release();
+            recorder = null;
+        }
+        if(recorder == null && checkSelfPermission(PERMISSION_RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10);   //5376* 10
             Log.d("VS", "Recorder initialized");
         }
@@ -356,6 +366,10 @@ public class MainActivity extends Activity {
 
                     int readSize;
                     while (status) {
+                        if (recorder == null) {
+                            try { sleep(200); } catch (Exception e) { return; }
+                            continue;
+                        }
                         //reading data from MIC into buffer
                         readSize = recorder.read(buffer, 0, buffer.length);
                         if( readSize >= 0) {
