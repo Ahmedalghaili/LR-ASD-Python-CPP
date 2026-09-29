@@ -13,7 +13,7 @@ Steps (safe order):
   head     head yaw 0 -> +15 -> +30 -> ... -> -30 -> 0 and pitch 20/40/30
   body     body rotation +15/-15/+30/-30 (only with --allow-body)
   voice    needs the new Zenbo app: counts DOA events in three listening
-           configurations (default, DOA monitor, always-listen)
+           modes (default, "Hey Zenbo" voice trigger, speak-and-listen)
   look     needs the new Zenbo app: turns with utility.lookAtUser(doa) after
            each DOA event; watches the camera for interference
   track    needs the new Zenbo app: runs utility.trackUser() and watches
@@ -315,25 +315,38 @@ def step_body(link, args):
 
 
 def step_voice(link, args):
+    """DOA reports in three listening modes of the original Zenbo SDK:
+    default (app as is), the "Hey Zenbo" voice trigger, and repeated
+    speak-and-listen. (DOA monitor / always-listen exist only in the Zenbo
+    Junior SDK.)"""
     results = []
     link.send(poc_action="sdk_version")
     link.send(poc_action="states_on")
-    for name, on, off in (("default", None, None),
-                          ("doa_monitor", "doa_monitor_on", "doa_monitor_off"),
-                          ("always_listen", "always_listen_on", "always_listen_off")):
-        if on:
-            link.send(poc_action=on)
-        print(f"voice/{name}: speak from different sides for {args.seconds:.0f} s", flush=True)
+    modes = (("default", "talk normally from different sides"),
+             ("voice_trigger", 'say "Hey Zenbo" then a sentence, from different sides'),
+             ("speak_and_listen", "when Zenbo is listening, say a sentence; change side each time"))
+    for name, how in modes:
+        print(f"voice/{name}: {how} for {args.seconds:.0f} s", flush=True)
+        if name == "voice_trigger":
+            link.send(poc_action="voice_trigger_on")
         t0 = time.time()
-        time.sleep(args.seconds)
+        next_listen = t0
+        while time.time() - t0 < args.seconds:
+            if name == "speak_and_listen" and time.time() >= next_listen:
+                link.send(poc_action="speak_and_listen")
+                next_listen = time.time() + 7
+            time.sleep(0.2)
         t1 = time.time()
-        if off:
-            link.send(poc_action=off)
+        if name == "voice_trigger":
+            link.send(poc_action="voice_trigger_off")
+        if name == "speak_and_listen":
+            link.send(poc_action="stop_listen")
         with link.lock:
             msgs = [m for t, m in link.messages if t0 <= t <= t1]
         doas = [m["doa"] for m in msgs if "doa" in m]
         r = {"step": f"voice {name}", **link.stats(t0, t1),
-             "doa_events": len(doas), "doa_values": doas[:30],
+             "doa_events": len(doas), "doa_values": doas[:40],
+             "vad_status": sorted({m["vad_status"] for m in msgs if "vad_status" in m}),
              "poc_results": [m["description"] for m in msgs
                              if m["description"].startswith("poc_result")]}
         print(json.dumps(r), flush=True)
@@ -344,7 +357,7 @@ def step_voice(link, args):
 
 def step_look(link, args):
     link.send(poc_action="states_on")
-    link.send(poc_action="doa_monitor_on")
+    link.send(poc_action="voice_trigger_on")
     t0 = time.time()
     turns = 0
     seen = 0
@@ -357,7 +370,7 @@ def step_look(link, args):
             turns += 1
             time.sleep(4)
         time.sleep(0.2)
-    link.send(poc_action="doa_monitor_off")
+    link.send(poc_action="voice_trigger_off")
     link.send(poc_action="states_off")
     r = {"step": "look", "look_at_user_calls": turns, **link.stats(t0, time.time())}
     print(json.dumps(r), flush=True)
