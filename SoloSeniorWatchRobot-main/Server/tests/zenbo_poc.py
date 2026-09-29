@@ -14,6 +14,8 @@ Steps (safe order):
   body     body rotation +15/-15/+30/-30 (only with --allow-body)
   voice    needs the new Zenbo app: counts DOA events in three listening
            modes (default, "Hey Zenbo" voice trigger, speak-and-listen)
+  calibrate needs the new Zenbo app: Zenbo asks you to speak from its
+           front, left, right and back, and records the DOA of each
   look     needs the new Zenbo app: turns with utility.lookAtUser(doa) after
            each DOA event; watches the camera for interference
   track    needs the new Zenbo app: runs utility.trackUser() and watches
@@ -181,6 +183,9 @@ class Link:
                     raise OSError("not connected")
                 sock.sendall(data)
                 print(f"[send] {fields}", flush=True)
+                # The original app handled one command per read: keep
+                # commands apart so older app versions run them on time.
+                time.sleep(0.3)
                 return True
             except OSError:
                 if attempt == 0 and not self.wait_reconnect():
@@ -355,6 +360,38 @@ def step_voice(link, args):
     return results
 
 
+def step_calibrate(link, args):
+    """Learn what Zenbo's DOA numbers mean: Zenbo asks the person to speak
+    from the front, its left, its right and behind, and records the onDOA
+    values of each position (during speak-and-listen)."""
+    link.send(poc_action="states_on")
+    positions = (("front", "Please stand in front of me."),
+                 ("left", "Now please stand on my left side."),
+                 ("right", "Now please stand on my right side."),
+                 ("behind", "Now please stand behind me."))
+    results = []
+    for name, instruction in positions:
+        print(f"calibrate/{name}: {instruction}", flush=True)
+        link.send(speak_sentence=instruction + " Then say hello when I listen.")
+        time.sleep(8)  # speech plus time to walk there
+        t0 = time.time()
+        link.send(poc_action="speak_and_listen")
+        time.sleep(9)
+        t1 = time.time()
+        link.send(poc_action="stop_listen")
+        with link.lock:
+            msgs = [m for t, m in link.messages if t0 <= t <= t1]
+        doas = [m["doa"] for m in msgs if m.get("vad_status") == "onDOA" and "doa" in m]
+        r = {"step": f"calibrate {name}", "onDOA_values": doas,
+             "doa": float(np.median(doas)) if doas else None}
+        print(json.dumps(r), flush=True)
+        results.append(r)
+        time.sleep(1)
+    link.send(speak_sentence="Thank you. The test is finished.")
+    link.send(poc_action="states_off")
+    return results
+
+
 def step_look(link, args):
     link.send(poc_action="states_on")
     link.send(poc_action="voice_trigger_on")
@@ -426,7 +463,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("steps", nargs="+",
-                    choices=["observe", "head", "body", "voice", "look", "track"])
+                    choices=["observe", "head", "body", "voice", "calibrate", "look", "track"])
     ap.add_argument("--listen", default="0.0.0.0")
     ap.add_argument("--port-offset", type=int, default=0,
                     help="listen on 8895+N...; for simulation next to a running server")
@@ -446,7 +483,8 @@ def main():
     time.sleep(2)
 
     steps = {"observe": step_observe, "head": step_head, "body": step_body,
-             "voice": step_voice, "look": step_look, "track": step_track}
+             "voice": step_voice, "calibrate": step_calibrate, "look": step_look,
+             "track": step_track}
     results = []
     try:
         for name in args.steps:

@@ -160,15 +160,22 @@ public class SocketManager {
                                 //debug
                                 Log.d("bytesRead", Integer.toString((bytesRead)));
                                 if (bytesRead != -1) {
+                                    if (effective_length + bytesRead > mMessagePool.length) {
+                                        Log.e("SocketManager", "command buffer full; dropping unparsed data");
+                                        effective_length = 0;
+                                    }
                                     System.arraycopy(message, 0, mMessagePool, effective_length, bytesRead);
                                     effective_length += bytesRead;
                                     String string = new String(mMessagePool, 0, effective_length, StandardCharsets.US_ASCII);
 
                                     int iBegin = string.indexOf(beginString);
-                                    int iEnd = string.indexOf(endString);
+                                    int iEnd = iBegin == -1 ? -1 : string.indexOf(endString, iBegin);
                                     Log.d("iBegin", Integer.toString((iBegin)));
                                     Log.d("iEnd", Integer.toString((iEnd)));
-                                    if (iBegin != -1 && iEnd != -1) {
+                                    // Handle every complete command in the pool. Handling only
+                                    // one per read left the next command waiting until more
+                                    // data arrived, so commands sent together ran one step late.
+                                    while (iBegin != -1 && iEnd != -1) {
                                         byte[] slice = Arrays.copyOfRange(mMessagePool, iBegin + beginString.length(), iEnd);
                                         int remaining = effective_length - (iEnd + endString.length());
                                         if (remaining > 0) {
@@ -306,6 +313,9 @@ public class SocketManager {
                                         {
                                             mRobotAPI.robot.stopSpeak();
                                         }
+                                        string = new String(mMessagePool, 0, effective_length, StandardCharsets.US_ASCII);
+                                        iBegin = string.indexOf(beginString);
+                                        iEnd = iBegin == -1 ? -1 : string.indexOf(endString, iBegin);
                                     }
                                 } else {
                                     //sleep 30 msecs;
