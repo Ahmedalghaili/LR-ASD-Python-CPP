@@ -95,6 +95,8 @@ class Console:
         self.last_doa = None
         self.last_doa_t = 0
         self.last_turn_t = 0
+        self.audio_status = ""        # the app's own microphone report
+        self.audio_status_t = 0
         threading.Thread(target=self._sender, daemon=True).start()
         self.add_log("waiting for Zenbo Nurse Helper V2 on port 8895 ...", GREY)
 
@@ -134,6 +136,10 @@ class Console:
                 elif "SUCCEED" in d or "FAILED" in d:
                     self.listening_since = None
                 self.add_log("< " + d.replace("robot_state ", "")[:70], GREY)
+            elif d.startswith("audio_status"):
+                if d.split(" reads_ok")[0] != self.audio_status.split(" reads_ok")[0]:
+                    self.add_log("< " + d, YELLOW)
+                self.audio_status, self.audio_status_t = d, t
             elif d.startswith("camera_"):
                 self.add_log("< CAMERA PROBLEM: " + d, RED)
             elif d.startswith(("poc_result", "robot_state")):
@@ -220,7 +226,16 @@ class Console:
         if fps < 1:
             return "Connected, but no camera images: check camera permission of V2.", RED
         if not audio:
-            return "No microphone sound from the app: allow MICROPHONE for V2, restart it.", RED
+            st = self.audio_status if now - self.audio_status_t < 12 else ""
+            if "permission=NO" in st:
+                return "Robot: microphone permission is OFF. Settings > Apps > V2 > Permissions.", RED
+            if "recorder=FAILED" in st or "recording=NO" in st:
+                return "Robot: microphone busy/not recording (Zenbo may hold it). Restart Zenbo.", RED
+            if "read_errors" in st and "reads_ok=0" in st:
+                return "Robot: microphone read errors (" + st.split("last_error=")[-1] + "). Restart Zenbo.", RED
+            if not st:
+                return "No microphone sound, and no mic report: install the newest V2 app.", RED
+            return "No microphone sound from the app.", RED
         if self.listening_since and now - self.last_voice_t > 3:
             return "Zenbo is LISTENING: speak now (a full sentence).", GREEN
         if now - self.last_doa_t < 4 and self.last_doa is not None:
@@ -274,6 +289,10 @@ class Console:
         row("Zenbo heard voice", self.last_vad if heard else "-", heard)
         row("Wake word / Auto", f"{'on' if self.wake_word else 'off'} / {'ON' if self.auto else 'off'}", self.auto)
         row("Head yaw / pitch", f"{self.head_yaw:+d} / {self.head_pitch}", True)
+        st = self.audio_status.replace("audio_status ", "") if now - self.audio_status_t < 12 else "no report"
+        cv2.putText(canvas, "Mic on robot: " + st[:60], (x, y), FONT, 0.45,
+                    GREEN if "recording=yes" in st else RED, 1)
+        y += 20
 
         # Direction compass (raw Zenbo DOA; robot faces up)
         cx, cy, r = x + 470, 395, 70

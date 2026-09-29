@@ -365,20 +365,58 @@ public class MainActivity extends Activity {
                     Log.d("VS", "Buffer created of size " + minBufSize);           // every 5 second, the log message occurs. It does not make sense.
 
                     int readSize;
+                    int okReads = 0, errorReads = 0, lastError = 0;
+                    long lastReport = 0, lastStartTry = 0;
                     while (status) {
-                        if (recorder == null) {
+                        long now = System.currentTimeMillis();
+                        boolean connected = socketManager.isConnected();
+                        // A recorder made while the microphone was busy never works: make a new one.
+                        if (recorder != null && recorder.getState() != AudioRecord.STATE_INITIALIZED
+                                && now - lastStartTry > 5000) {
+                            lastStartTry = now;
+                            recorder.release();
+                            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10);
+                        }
+                        AudioRecord r = recorder;
+                        // Record whenever the app is connected, also after an automatic reconnect.
+                        if (r != null && connected && r.getState() == AudioRecord.STATE_INITIALIZED
+                                && r.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING
+                                && now - lastStartTry > 3000) {
+                            lastStartTry = now;
+                            try {
+                                r.startRecording();
+                            } catch (Exception e) {
+                                lastError = -1000;
+                            }
+                        }
+                        // Tell the server every 5 s what the microphone is doing.
+                        if (connected && now - lastReport > 5000 && robotCallback != null) {
+                            lastReport = now;
+                            robotCallback.sendText("audio_status permission="
+                                    + (checkSelfPermission(PERMISSION_RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED ? "yes" : "NO")
+                                    + " recorder=" + (r == null ? "none" : r.getState() == AudioRecord.STATE_INITIALIZED ? "ready" : "FAILED")
+                                    + " recording=" + (r != null && r.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING ? "yes" : "NO")
+                                    + " reads_ok=" + okReads + " read_errors=" + errorReads + " last_error=" + lastError);
+                            okReads = 0;
+                            errorReads = 0;
+                        }
+                        if (r == null || r.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
                             try { sleep(200); } catch (Exception e) { return; }
                             continue;
                         }
                         //reading data from MIC into buffer
-                        readSize = recorder.read(buffer, 0, buffer.length);
+                        readSize = r.read(buffer, 0, buffer.length);
                         if( readSize >= 0) {
+                            okReads++;
                             byte[] byteBuffer = converter.ShortToByte_Twiddle_Method(buffer);
                             socketManager.sendAudio(byteBuffer);
                         }
                         else
                         {
-                            Log.e("recorder","recorder.read() error");
+                            errorReads++;
+                            lastError = readSize;
+                            Log.e("recorder","recorder.read() error " + readSize);
+                            try { sleep(50); } catch (Exception e) { return; }
                         }
                     }
                 }
