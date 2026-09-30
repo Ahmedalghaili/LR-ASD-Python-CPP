@@ -1218,7 +1218,7 @@ void MainWindow::sendPocAction(const char *action)
 
 // The original Zenbo reports the direction of a voice (onDOA) only while its
 // dialogue system listens, so keep it listening: start speakAndListen, wait
-// until it finishes (utterance or final state) or 10 s, then start again.
+// until it finishes by itself (utterance or final state), then start again.
 void MainWindow::keepZenboListening(double nowMs)
 {
     if (nowMs - mStatesOnMs > 60000)
@@ -1234,12 +1234,14 @@ void MainWindow::keepZenboListening(double nowMs)
         mListenActive = false;
         mNextListenMs = std::max(mNextListenMs, nowMs + 300);
     }
-    if (mListenActive && nowMs - mListenStartMs > 10000)
+    // Never interrupt Zenbo's listening: after stopSpeakAndListen the robot
+    // stopped sending voice events to the app until it was reopened. Wait for
+    // the listen to end by itself; only if no end is reported, try again
+    // after 30 s.
+    if (mListenActive && nowMs - mListenStartMs > 30000)
     {
-        sendPocAction("stop_listen");
         mListenActive = false;
-        mNextListenMs = nowMs + 1000;
-        return;
+        mNextListenMs = nowMs;
     }
     if (!mListenActive && nowMs >= mNextListenMs)
     {
@@ -1260,9 +1262,7 @@ void MainWindow::updateActiveSpeakerFollowing()
     {
         if (mFollowActive)
         {
-            if (mListenActive)
-                sendPocAction("stop_listen");
-            mListenActive = false;
+            mListenActive = false;  // let a running listen end by itself
             mStatesOnMs = -1e9;
             mFollowActive = false;
             mSpeakerFollower.reset();

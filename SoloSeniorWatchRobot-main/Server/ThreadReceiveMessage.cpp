@@ -52,8 +52,15 @@ void ThreadReceiveMessage::run()
                     if (RTSmessage.description() != "onVoiceDetect" && onListenFinished)
                         onListenFinished();
                 }
+                else if (RTSmessage.description().rfind("poc_result", 0) == 0 ||
+                         RTSmessage.description().rfind("robot_state cmd=UTILITY", 0) == 0)
+                {
+                    // Zenbo V2 app: result of a test/utility action, or of lookAtUser.
+                    cout << "{\"component\":\"ZenboApp\",\"message\":\"" << RTSmessage.description() << "\"}" << endl;
+                }
                 else if (RTSmessage.description().rfind("robot_state cmd=DS_SPEAK_AND_LISTEN", 0) == 0)
                 {
+                    cout << "{\"component\":\"ZenboApp\",\"message\":\"" << RTSmessage.description() << "\"}" << endl;
                     // Command states forwarded by the Zenbo V2 app (poc_action "states_on").
                     const string &d = RTSmessage.description();
                     if ((d.find("SUCCEED") != string::npos || d.find("FAILED") != string::npos) &&
