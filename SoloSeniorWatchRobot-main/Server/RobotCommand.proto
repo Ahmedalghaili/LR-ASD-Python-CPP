@@ -68,4 +68,11 @@ message RobotToServerMessage {
   optional int32                     doa            = 9;
   optional int32                     sound_level    = 10;
   optional string                    vad_status     = 11;
+
+  //Microphone probe (Zenbo V2 app, poc_action "mic_probe" / "mic_record"):
+  //raw interleaved PCM16 audio of one recording, its channel count and
+  //sample rate; the description names the audio source and channel mask.
+  optional bytes                     audio_probe          = 12;
+  optional int32                     audio_probe_channels = 13;
+  optional int32                     audio_probe_rate     = 14;
 }

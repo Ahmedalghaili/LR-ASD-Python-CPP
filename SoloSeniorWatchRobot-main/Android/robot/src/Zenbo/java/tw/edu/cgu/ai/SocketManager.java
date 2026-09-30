@@ -29,6 +29,7 @@ public class SocketManager {
     // Compatibility PoC: "mic_off" releases the app's microphone so that
     // Zenbo's own listening can use it; "mic_on" records again.
     public volatile boolean micEnabled = true;
+    private final MicProbe micProbe = new MicProbe(this);
 
     private void report(String text) {
         if (robotCallback != null)
@@ -90,6 +91,10 @@ public class SocketManager {
                 case "track_user":
                     result = mRobotAPI.utility.trackUser();
                     break;
+                case "mic_probe":
+                    micProbe.probeAll();
+                    result = "started";
+                    break;
                 case "mic_off":
                 case "mic_on":
                     micEnabled = action.equals("mic_on");
@@ -102,7 +107,12 @@ public class SocketManager {
                     result = RobotAPI.getVersion();
                     break;
                 default:
-                    result = "unknown action";
+                    if (action.startsWith("mic_record:")) {
+                        micProbe.recordOne(action);
+                        result = "started";
+                    } else {
+                        result = "unknown action";
+                    }
             }
         } catch (Throwable e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
