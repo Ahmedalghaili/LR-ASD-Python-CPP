@@ -85,6 +85,11 @@ struct ActiveSpeakerConfig
     // any voice while no visible face is speaking (LookAtUser needs no
     // calibration; it uses Zenbo's own DOA).
     bool doaCalibrated = true;
+    // A two-microphone DOA cannot tell front from back. When a voice comes
+    // from inside the camera view but nobody at all has been seen for
+    // rearNoFaceMs, it is behind the robot: turn by rearTurnDeg (0 = off).
+    double rearTurnDeg = 0;
+    double rearNoFaceMs = 2000;
     double doaMaxAgeMs = 1000;     // ignore older DOA reports
     double voiceQuietMs = 800;     // no visible face may have spoken for this long
     double voiceTurnGapMs = 4000;  // minimum time between voice turns

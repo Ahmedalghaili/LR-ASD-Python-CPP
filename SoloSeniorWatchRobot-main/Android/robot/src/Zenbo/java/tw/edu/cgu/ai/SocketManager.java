@@ -30,6 +30,23 @@ public class SocketManager {
     // Zenbo's own listening can use it; "mic_on" records again.
     public volatile boolean micEnabled = true;
     private final MicProbe micProbe = new MicProbe(this);
+    // Send both microphones (200 ms pieces) so the server can compute the
+    // direction of a voice; poc_action "stereo_off" / "stereo_on".
+    public volatile boolean stereoEnabled = true;
+
+    public void sendStereoAudio(byte[] pcm, int rate) {
+        if (!stereoEnabled || mSocketSendMessages == null)
+            return;
+        long t = System.currentTimeMillis();
+        sendAMessage(RobotCommandOuterClass.RobotToServerMessage.newBuilder()
+                .setEventTime(com.google.protobuf.Timestamp.newBuilder().setSeconds(t / 1000)
+                        .setNanos((int) ((t % 1000) * 1000000)).build())
+                .setDescription("stereo_audio")
+                .setAudioProbe(com.google.protobuf.ByteString.copyFrom(pcm))
+                .setAudioProbeChannels(2)
+                .setAudioProbeRate(rate)
+                .build(), mSocketSendMessages);
+    }
 
     private void report(String text) {
         if (robotCallback != null)
@@ -90,6 +107,11 @@ public class SocketManager {
                     break;
                 case "track_user":
                     result = mRobotAPI.utility.trackUser();
+                    break;
+                case "stereo_on":
+                case "stereo_off":
+                    stereoEnabled = action.equals("stereo_on");
+                    result = "ok";
                     break;
                 case "mic_probe":
                     micProbe.probeAll();

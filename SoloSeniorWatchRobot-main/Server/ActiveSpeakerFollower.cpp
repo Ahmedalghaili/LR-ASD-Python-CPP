@@ -164,10 +164,23 @@ ActiveSpeakerDecision ActiveSpeakerFollower::update(
                               config_.doaMode == DoaMode::Rotate;
             // Calibrated direction (+ = robot's left). A voice from inside the
             // camera view is left to LR-ASD.
-            const int rotateDegree = static_cast<int>(std::lround(
+            int rotateDegree = static_cast<int>(std::lround(
                 std::remainder(config_.doaSign * doa + config_.doaOffsetDeg, 360.0)));
-            const bool outOfView = !config_.doaCalibrated ||
-                                   std::abs(rotateDegree) >= config_.voiceInViewDeg;
+            bool outOfView = !config_.doaCalibrated ||
+                             std::abs(rotateDegree) >= config_.voiceInViewDeg;
+            bool fromBehind = false;
+            if (!outOfView && config_.rearTurnDeg != 0)
+            {
+                bool anyoneSeen = false;
+                for (const auto &[id, t] : tracks_)
+                    anyoneSeen |= nowMs - t.lastSeenMs <= config_.rearNoFaceMs;
+                if (!anyoneSeen)
+                {
+                    fromBehind = true;
+                    outOfView = true;
+                    rotateDegree = static_cast<int>(std::lround(config_.rearTurnDeg));
+                }
+            }
             bool faceThere = false;
             for (const auto &[id, t] : tracks_)
                 faceThere |= config_.doaCalibrated && t.seenNow &&
@@ -196,7 +209,8 @@ ActiveSpeakerDecision ActiveSpeakerFollower::update(
                 lastTargetWorldDeg_.reset();
                 d.event = "turn_to_voice";
                 d.reason = "voice at DOA " + std::to_string(int(std::lround(doa))) +
-                           " with no visible speaker";
+                           (fromBehind ? " from straight ahead but nobody in view: turning to the back"
+                                       : " with no visible speaker");
                 // The previous target is now behind the turn; the next speaker
                 // is acquired normally once LR-ASD sees them.
                 if (target_ >= 0)

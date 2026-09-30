@@ -41,8 +41,8 @@ android {
             dimension 'RobotType'
             minSdk 23
             targetSdkVersion 23
-            versionName 'v2.2026.09.30-micprobe'
-            versionCode 17
+            versionName 'v2.2026.09.30-stereo'
+            versionCode 18
             applicationIdSuffix ".zenbo.v2"
             versionNameSuffix "-zenbo-v2"
             externalNativeBuild {

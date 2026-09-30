@@ -22,7 +22,14 @@ void ThreadReceiveMessage::run()
 
             if (RTSmessage.has_description())
             {
-                if (RTSmessage.description() == "onTTSComplete")
+                if (RTSmessage.description() == "stereo_audio")
+                {
+                    const string &bytes = RTSmessage.audio_probe();
+                    if (onStereoAudio && RTSmessage.audio_probe_channels() == 2 && bytes.size() >= 4)
+                        onStereoAudio(reinterpret_cast<const int16_t *>(bytes.data()), bytes.size() / 4,
+                                      RTSmessage.audio_probe_rate());
+                }
+                else if (RTSmessage.description() == "onTTSComplete")
                 {
                     mpThreadStateControl->NotifyEvent("onTTSComplete", chrono::system_clock::now());
                     if (ms_RobotModel == "ZenboJrII")

@@ -188,6 +188,14 @@ MainWindow::MainWindow(QWidget *parent)
             config.doaMode = ActiveSpeakerConfig::DoaMode::LookAtUser;
         else if (doaMode == "rotate")
             config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
+        else if (doaMode == "stereo")
+        {
+            // Direction computed here from Zenbo's two microphones (StereoDoa):
+            // already in degrees, + = left, so no calibration is needed.
+            config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
+            config.rearTurnDeg = 180;
+            mStereoDoaEnabled = true;
+        }
         else
             config.doaMode = ActiveSpeakerConfig::DoaMode::Log;
         bool ok = false;
@@ -200,7 +208,7 @@ MainWindow::MainWindow(QWidget *parent)
             config.doaOffsetDeg = offset;
         // Without a measured sign/offset the follower cannot tell whether a
         // voice is inside the camera view (see ActiveSpeakerConfig).
-        config.doaCalibrated = haveSign || ok ||
+        config.doaCalibrated = haveSign || ok || mStereoDoaEnabled ||
                                qEnvironmentVariable("ACTIVE_SPEAKER_DOA_CALIBRATED") == "1";
         // Horizontal field of view measured on the original Zenbo with
         // tests/zenbo_poc.py (a 10 deg head turn moved the image ~58 of 320 px).
@@ -229,6 +237,9 @@ MainWindow::MainWindow(QWidget *parent)
                   << std::endl;
     }
     thread_receive_message.onListenFinished = [this]() { mListenEnded = true; };
+    thread_receive_message.onStereoAudio = [this](const int16_t *pcm, size_t frames, int rate) {
+        onStereoAudio(pcm, frames, rate);
+    };
     thread_receive_message.onVoiceDirection = [this](int doa) {
         const double nowMs = std::chrono::duration<double, std::milli>(
                                  std::chrono::steady_clock::now().time_since_epoch())
@@ -1208,6 +1219,40 @@ void MainWindow::on_listView_Song_doubleClicked(const QModelIndex &index)
     cout << "Custom action: " << index.row() << endl;
 }
 
+// A 200 ms stereo piece from Zenbo's two microphones (receive thread).
+// A direction counts only for a voice: clearly above the background noise,
+// consistent inside the piece, and agreeing with the previous piece.
+void MainWindow::onStereoAudio(const int16_t *pcm, size_t frames, int rate)
+{
+    if (!mStereoDoaEnabled)
+        return;
+    const StereoDoaResult r = mStereoDoa.process(pcm, frames, rate);
+    mStereoLevels.push_back(r.levelDbfs);
+    if (mStereoLevels.size() > 50)  // 10 s
+        mStereoLevels.pop_front();
+    std::vector<double> levels(mStereoLevels.begin(), mStereoLevels.end());
+    std::nth_element(levels.begin(), levels.begin() + levels.size() / 5, levels.end());
+    const double noiseFloor = levels[levels.size() / 5];
+    const bool voice = r.valid && r.levelDbfs >= noiseFloor + 6;
+    const bool agrees = std::abs(r.angleDeg - mStereoLastAngle) <= 20;
+    mStereoLastAngle = voice ? r.angleDeg : 1e9;
+    if (!voice)
+        return;
+    std::cout << "{\"component\":\"StereoDoa\",\"angle_deg\":" << std::lround(r.angleDeg)
+              << ",\"tdoa_us\":" << std::lround(r.tdoaUs) << ",\"consistency\":" << r.consistency
+              << ",\"level_dbfs\":" << std::lround(r.levelDbfs) << ",\"noise_dbfs\":" << std::lround(noiseFloor)
+              << ",\"used\":" << agrees << "}" << std::endl;
+    if (!agrees)
+        return;
+    const double nowMs = std::chrono::duration<double, std::milli>(
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
+    std::lock_guard<std::mutex> lock(mVoiceMutex);
+    mVoiceDoas.emplace_back(static_cast<int>(std::lround(r.angleDeg)), nowMs);
+    if (mVoiceDoas.size() > 50)
+        mVoiceDoas.erase(mVoiceDoas.begin());
+}
+
 // Send a named test/utility action to the Zenbo V2 app (RobotCommand.poc_action).
 void MainWindow::sendPocAction(const char *action)
 {
@@ -1307,7 +1352,7 @@ void MainWindow::updateActiveSpeakerFollowing()
         }
     }
 
-    if (live && mSpeakerFollower.config().doaMode != ActiveSpeakerConfig::DoaMode::Off)
+    if (live && mSpeakerFollower.config().doaMode == ActiveSpeakerConfig::DoaMode::LookAtUser)
         keepZenboListening(std::chrono::duration<double, std::milli>(
                                std::chrono::steady_clock::now().time_since_epoch())
                                .count());

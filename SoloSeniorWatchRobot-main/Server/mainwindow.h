@@ -33,6 +33,8 @@
 #include "VideoAudioBuffer.hpp"
 #include "LRASDWorker.hpp"
 #include "ActiveSpeakerFollower.hpp"
+#include "StereoDoa.hpp"
+#include <deque>
 
 using namespace std;
 
@@ -129,6 +131,12 @@ protected:
     double mNextListenMs = 0;
     double mStatesOnMs = -1e9;
     std::atomic<bool> mListenEnded{false};
+    // Voice direction from Zenbo's two microphones (ACTIVE_SPEAKER_DOA=stereo).
+    bool mStereoDoaEnabled = false;
+    StereoDoa mStereoDoa;
+    std::deque<double> mStereoLevels;  // recent piece levels: background noise
+    double mStereoLastAngle = 1e9;
+    void onStereoAudio(const int16_t *pcm, size_t frames, int rate);
     void updateActiveSpeakerFollowing();
     void keepZenboListening(double nowMs);
     void sendPocAction(const char *action);

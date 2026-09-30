@@ -94,6 +94,7 @@ set(ONNX_HPP_INCLUDE_DIR "${SoloSeniorWatchRobot_BUILD_DIR}/${ONNX_DIR_NAME}/inc
 set(SILERO_HPP_INCLUDE_DIR "${SoloSeniorWatchRobot_BUILD_DIR}/silero-vad/examples/cpp")
 set(SOURCES AnythingLLM.cpp
             ActiveSpeakerFollower.cpp
+            StereoDoa.cpp
             GetLandmarks.cpp
             JPEG.cpp
             LRASDWorker.cpp
@@ -263,3 +264,7 @@ target_include_directories(active_speaker_follower_test PRIVATE ${CMAKE_SOURCE_D
 add_test(NAME active_speaker_follower_test COMMAND active_speaker_follower_test)
 add_executable(active_speaker_replay ActiveSpeakerFollower.cpp tests/active_speaker_replay.cpp)
 target_include_directories(active_speaker_replay PRIVATE ${CMAKE_SOURCE_DIR})
+add_executable(stereo_doa_replay StereoDoa.cpp tests/stereo_doa_replay.cpp)
+target_include_directories(stereo_doa_replay PRIVATE ${CMAKE_SOURCE_DIR})
+target_link_libraries(stereo_doa_replay ${OpenCV_LIBS})
+add_test(NAME stereo_doa_selftest COMMAND stereo_doa_replay --selftest)

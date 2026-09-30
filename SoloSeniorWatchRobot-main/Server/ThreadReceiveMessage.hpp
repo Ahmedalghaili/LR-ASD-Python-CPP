@@ -42,6 +42,9 @@ public:
     // Called when Zenbo's listening (speakAndListen) has finished: an
     // utterance, a listen result, or the command's final state.
     std::function<void()> onListenFinished;
+    // Called with each 200 ms stereo piece of Zenbo's two microphones
+    // ("stereo_audio" from the Zenbo V2 app): interleaved PCM16, frames, rate.
+    std::function<void(const int16_t *pcm, size_t frames, int rate)> onStereoAudio;
 
     void SetRobotModel(string sRobotModel)
     {

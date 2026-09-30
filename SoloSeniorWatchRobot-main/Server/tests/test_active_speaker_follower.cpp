@@ -490,6 +490,42 @@ int main()
         CHECK(d.event != "turn_to_voice" && !d.lookAtUserDoa);
     });
 
+    test("stereo DOA: a voice from straight ahead with nobody in view is behind", [&] {
+        ActiveSpeakerConfig c;
+        c.doaMode = DoaMode::Rotate;
+        c.rearTurnDeg = 180;
+        Run r;
+        r.f = ActiveSpeakerFollower(c);
+        for (int i = 0; i < 20; ++i) r.step({});  // nobody visible for 4 s
+        r.f.addVoiceDirection(-8, r.now + STEP);
+        auto d = r.step({});
+        CHECK(d.event == "turn_to_voice" && d.bodyDegree && *d.bodyDegree == 180);
+    });
+
+    test("stereo DOA: a voice from straight ahead with a silent face in view is not behind", [&] {
+        ActiveSpeakerConfig c;
+        c.doaMode = DoaMode::Rotate;
+        c.rearTurnDeg = 180;
+        Run r;
+        r.f = ActiveSpeakerFollower(c);
+        for (int i = 0; i < 20; ++i) r.step({face(1, -3.0f, 5)});
+        r.f.addVoiceDirection(-8, r.now + STEP);
+        auto d = r.step({face(1, -3.0f, 5)});
+        CHECK(d.event != "turn_to_voice");
+    });
+
+    test("stereo DOA: a voice from the side turns by its angle", [&] {
+        ActiveSpeakerConfig c;
+        c.doaMode = DoaMode::Rotate;
+        c.rearTurnDeg = 180;
+        Run r;
+        r.f = ActiveSpeakerFollower(c);
+        for (int i = 0; i < 20; ++i) r.step({});
+        r.f.addVoiceDirection(51, r.now + STEP);
+        auto d = r.step({});
+        CHECK(d.event == "turn_to_voice" && d.bodyDegree && *d.bodyDegree == 51);
+    });
+
     test("after a voice turn, attends at once to a centred face LR-ASD marks speaking", [&] {
         Run r = withDoa(DoaMode::LookAtUser);
         r.f.addVoiceDirection(90, r.now + STEP);

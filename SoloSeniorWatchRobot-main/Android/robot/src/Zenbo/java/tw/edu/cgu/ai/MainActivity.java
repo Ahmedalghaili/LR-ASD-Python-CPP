@@ -194,6 +194,35 @@ public class MainActivity extends Activity {
     private int channelConfig = AudioFormat.CHANNEL_IN_MONO;
     private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     int minBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat);   //minBufSize = 5376, but larger is better.
+    // 2 when the recorder records Zenbo's two microphones (then the server can
+    // compute the direction of a voice), 1 for the old mono recording.
+    private volatile int recorderChannels = 1;
+
+    // Record the two microphones (channel index 0 and 1; the others are silent,
+    // see Server/tests/zenbo_mic_probe.py). Fall back to mono if refused.
+    private AudioRecord createRecorder() {
+        try {
+            AudioFormat format = new AudioFormat.Builder()
+                    .setEncoding(audioFormat)
+                    .setSampleRate(sampleRate)
+                    .setChannelIndexMask(0x3)
+                    .build();
+            AudioRecord r = new AudioRecord.Builder()
+                    .setAudioSource(MediaRecorder.AudioSource.MIC)
+                    .setAudioFormat(format)
+                    .setBufferSizeInBytes(minBufSize * 20)
+                    .build();
+            if (r.getState() == AudioRecord.STATE_INITIALIZED && r.getChannelCount() == 2) {
+                recorderChannels = 2;
+                return r;
+            }
+            r.release();
+        } catch (Exception e) {
+            Log.e("recorder", "stereo recorder failed: " + e.getMessage());
+        }
+        recorderChannels = 1;
+        return new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10);
+    }
     private boolean status = true;
 
     @Override
@@ -345,7 +374,7 @@ public class MainActivity extends Activity {
             recorder = null;
         }
         if(recorder == null && checkSelfPermission(PERMISSION_RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10);   //5376* 10
+            recorder = createRecorder();
             Log.d("VS", "Recorder initialized");
         }
         if( checkSelfPermission(PERMISSION_CAMERA) == PackageManager.PERMISSION_GRANTED )
@@ -361,7 +390,9 @@ public class MainActivity extends Activity {
             new Runnable() {
                 @Override
                 public void run() {
-                    short[] buffer = new short[minBufSize];   //minBufSize = 5376
+                    short[] buffer = new short[minBufSize * 2];   //minBufSize = 5376; x2 for stereo
+                    short[] stereoChunk = new short[sampleRate / 5 * 2];   // 200 ms of both microphones
+                    int stereoFill = 0;
                     Log.d("VS", "Buffer created of size " + minBufSize);           // every 5 second, the log message occurs. It does not make sense.
 
                     int readSize;
@@ -382,14 +413,14 @@ public class MainActivity extends Activity {
                         }
                         if (socketManager.micEnabled && recorder == null
                                 && checkSelfPermission(PERMISSION_RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10);
+                            recorder = createRecorder();
                         }
                         // A recorder made while the microphone was busy never works: make a new one.
                         if (recorder != null && recorder.getState() != AudioRecord.STATE_INITIALIZED
                                 && now - lastStartTry > 5000) {
                             lastStartTry = now;
                             recorder.release();
-                            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10);
+                            recorder = createRecorder();
                         }
                         AudioRecord r = recorder;
                         // Record whenever the app is connected, also after an automatic reconnect.
@@ -407,6 +438,7 @@ public class MainActivity extends Activity {
                         if (connected && now - lastReport > 5000 && robotCallback != null) {
                             lastReport = now;
                             robotCallback.sendText("audio_status mic=" + (socketManager.micEnabled ? "on" : "OFF(test)")
+                                    + " channels=" + (r == null ? 0 : r.getChannelCount())
                                     + " permission="
                                     + (checkSelfPermission(PERMISSION_RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED ? "yes" : "NO")
                                     + " recorder=" + (r == null ? "none" : r.getState() == AudioRecord.STATE_INITIALIZED ? "ready" : "FAILED")
@@ -420,10 +452,30 @@ public class MainActivity extends Activity {
                             continue;
                         }
                         //reading data from MIC into buffer
-                        readSize = r.read(buffer, 0, buffer.length);
-                        if( readSize >= 0) {
+                        int channels = r.getChannelCount();
+                        readSize = r.read(buffer, 0, channels == 2 ? buffer.length : minBufSize);
+                        if( readSize >= 0 && channels == 2) {
                             okReads++;
-                            byte[] byteBuffer = converter.ShortToByte_Twiddle_Method(buffer);
+                            // Mono for the server's speech pipeline, exactly as before:
+                            // the average of the two microphones.
+                            int frames = readSize / 2;
+                            short[] mono = new short[frames];
+                            for (int i = 0; i < frames; i++)
+                                mono[i] = (short) ((buffer[2 * i] + buffer[2 * i + 1]) / 2);
+                            socketManager.sendAudio(converter.ShortToByte_Twiddle_Method(mono));
+                            // Both microphones in 200 ms pieces for the voice direction.
+                            for (int i = 0; i < frames * 2; i++) {
+                                stereoChunk[stereoFill++] = buffer[i];
+                                if (stereoFill == stereoChunk.length) {
+                                    socketManager.sendStereoAudio(converter.ShortToByte_Twiddle_Method(stereoChunk), sampleRate);
+                                    stereoFill = 0;
+                                }
+                            }
+                        }
+                        else if( readSize >= 0) {
+                            okReads++;
+                            short[] mono = java.util.Arrays.copyOf(buffer, minBufSize);
+                            byte[] byteBuffer = converter.ShortToByte_Twiddle_Method(mono);
                             socketManager.sendAudio(byteBuffer);
                         }
                         else
