@@ -166,10 +166,11 @@ ActiveSpeakerDecision ActiveSpeakerFollower::update(
             // camera view is left to LR-ASD.
             const int rotateDegree = static_cast<int>(std::lround(
                 std::remainder(config_.doaSign * doa + config_.doaOffsetDeg, 360.0)));
-            const bool outOfView = std::abs(rotateDegree) >= config_.voiceInViewDeg;
+            const bool outOfView = !config_.doaCalibrated ||
+                                   std::abs(rotateDegree) >= config_.voiceInViewDeg;
             bool faceThere = false;
             for (const auto &[id, t] : tracks_)
-                faceThere |= t.seenNow &&
+                faceThere |= config_.doaCalibrated && t.seenNow &&
                              std::abs(t.bearingDeg - rotateDegree) <= config_.voiceFaceMatchDeg;
             const bool warmedUp = nowMs - *firstUpdateMs_ >= config_.voiceWarmupMs;
             if (acts && warmedUp && unexplained && outOfView && !faceThere && nowMs >= motionUntilMs_ &&

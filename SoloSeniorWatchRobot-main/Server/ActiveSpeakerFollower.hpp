@@ -80,6 +80,11 @@ struct ActiveSpeakerConfig
     DoaMode doaMode = DoaMode::Log;
     double doaSign = 1;
     double doaOffsetDeg = 0;
+    // False until doaSign/doaOffsetDeg are measured: the follower cannot tell
+    // whether a voice comes from inside the camera view, so it turns toward
+    // any voice while no visible face is speaking (LookAtUser needs no
+    // calibration; it uses Zenbo's own DOA).
+    bool doaCalibrated = true;
     double doaMaxAgeMs = 1000;     // ignore older DOA reports
     double voiceQuietMs = 800;     // no visible face may have spoken for this long
     double voiceTurnGapMs = 4000;  // minimum time between voice turns

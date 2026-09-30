@@ -39,6 +39,9 @@ public:
     // Called for every Zenbo voice-detection event that carries a direction of
     // arrival (raw SDK value). Set before the thread starts.
     std::function<void(int doa)> onVoiceDirection;
+    // Called when Zenbo's listening (speakAndListen) has finished: an
+    // utterance, a listen result, or the command's final state.
+    std::function<void()> onListenFinished;
 
     void SetRobotModel(string sRobotModel)
     {

@@ -26,6 +26,7 @@
 #include "SendMessageManager.hpp"
 #include "SocketClientHandler.hpp"
 #include <memory>
+#include <atomic>
 #include <mutex>
 #include "../VideoWindow.hpp"
 #include "Setting.hpp"
@@ -122,7 +123,15 @@ protected:
     std::mutex mVoiceMutex;
     std::vector<std::pair<int, double>> mVoiceDoas;
     int mBodySpeedLevel = 0;  // Zenbo moveBody speed L1..L7; 0 = app default
+    // Zenbo listening loop (original Zenbo reports DOA only while listening).
+    bool mListenActive = false;
+    double mListenStartMs = 0;
+    double mNextListenMs = 0;
+    double mStatesOnMs = -1e9;
+    std::atomic<bool> mListenEnded{false};
     void updateActiveSpeakerFollowing();
+    void keepZenboListening(double nowMs);
+    void sendPocAction(const char *action);
     void drawActiveSpeakerOverlay(cv::Mat &preview);
 
 signals:

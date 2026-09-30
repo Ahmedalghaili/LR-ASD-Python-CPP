@@ -194,9 +194,20 @@ MainWindow::MainWindow(QWidget *parent)
         const double sign = qEnvironmentVariable("ACTIVE_SPEAKER_DOA_SIGN").toDouble(&ok);
         if (ok && (sign == 1 || sign == -1))
             config.doaSign = sign;
+        bool haveSign = ok;
         const double offset = qEnvironmentVariable("ACTIVE_SPEAKER_DOA_OFFSET").toDouble(&ok);
         if (ok)
             config.doaOffsetDeg = offset;
+        // Without a measured sign/offset the follower cannot tell whether a
+        // voice is inside the camera view (see ActiveSpeakerConfig).
+        config.doaCalibrated = haveSign || ok ||
+                               qEnvironmentVariable("ACTIVE_SPEAKER_DOA_CALIBRATED") == "1";
+        // Horizontal field of view measured on the original Zenbo with
+        // tests/zenbo_poc.py (a 10 deg head turn moved the image ~58 of 320 px).
+        config.hfovDeg = 55;
+        const double hfov = qEnvironmentVariable("ACTIVE_SPEAKER_HFOV").toDouble(&ok);
+        if (ok && hfov > 10 && hfov < 180)
+            config.hfovDeg = hfov;
         const double logit = qEnvironmentVariable("ACTIVE_SPEAKER_LOGIT").toDouble(&ok);
         if (ok)
             config.speakingLogit = float(logit);
@@ -213,9 +224,11 @@ MainWindow::MainWindow(QWidget *parent)
                   << (doaMode.isEmpty() ? QByteArray("log") : doaMode).constData()
                   << "\",\"doa_sign\":" << config.doaSign << ",\"doa_offset\":" << config.doaOffsetDeg
                   << ",\"body_speed\":" << mBodySpeedLevel << ",\"speaking_logit\":" << config.speakingLogit
-                  << ",\"acquire_ms\":" << config.acquireMs << ",\"idle_look\":" << config.lookAtIdleFace << "}"
+                  << ",\"acquire_ms\":" << config.acquireMs << ",\"idle_look\":" << config.lookAtIdleFace
+                  << ",\"doa_calibrated\":" << config.doaCalibrated << ",\"hfov\":" << config.hfovDeg << "}"
                   << std::endl;
     }
+    thread_receive_message.onListenFinished = [this]() { mListenEnded = true; };
     thread_receive_message.onVoiceDirection = [this](int doa) {
         const double nowMs = std::chrono::duration<double, std::milli>(
                                  std::chrono::steady_clock::now().time_since_epoch())
@@ -1195,6 +1208,47 @@ void MainWindow::on_listView_Song_doubleClicked(const QModelIndex &index)
     cout << "Custom action: " << index.row() << endl;
 }
 
+// Send a named test/utility action to the Zenbo V2 app (RobotCommand.poc_action).
+void MainWindow::sendPocAction(const char *action)
+{
+    RobotCommandProtobuf::RobotCommand command;
+    command.set_poc_action(action);
+    sendMessageManager.AddMessage(command);
+}
+
+// The original Zenbo reports the direction of a voice (onDOA) only while its
+// dialogue system listens, so keep it listening: start speakAndListen, wait
+// until it finishes (utterance or final state) or 10 s, then start again.
+void MainWindow::keepZenboListening(double nowMs)
+{
+    if (nowMs - mStatesOnMs > 60000)
+    {
+        // Ask the app to forward command states (listen finished), again
+        // every minute in case the app reconnected.
+        sendPocAction("states_on");
+        mStatesOnMs = nowMs;
+        return;
+    }
+    if (mListenEnded.exchange(false) && mListenActive)
+    {
+        mListenActive = false;
+        mNextListenMs = std::max(mNextListenMs, nowMs + 300);
+    }
+    if (mListenActive && nowMs - mListenStartMs > 10000)
+    {
+        sendPocAction("stop_listen");
+        mListenActive = false;
+        mNextListenMs = nowMs + 1000;
+        return;
+    }
+    if (!mListenActive && nowMs >= mNextListenMs)
+    {
+        sendPocAction("speak_and_listen");
+        mListenActive = true;
+        mListenStartMs = nowMs;
+    }
+}
+
 // Head pitch the Zenbo app sets once it connects (MainActivity: moveHead(0, 30)).
 static constexpr int kZenboConnectPitch = 30;
 
@@ -1206,6 +1260,10 @@ void MainWindow::updateActiveSpeakerFollowing()
     {
         if (mFollowActive)
         {
+            if (mListenActive)
+                sendPocAction("stop_listen");
+            mListenActive = false;
+            mStatesOnMs = -1e9;
             mFollowActive = false;
             mSpeakerFollower.reset();
             mFollowDecision = {};
@@ -1248,6 +1306,11 @@ void MainWindow::updateActiveSpeakerFollowing()
             robot_status.yaw_degree = 0;
         }
     }
+
+    if (live && mSpeakerFollower.config().doaMode != ActiveSpeakerConfig::DoaMode::Off)
+        keepZenboListening(std::chrono::duration<double, std::milli>(
+                               std::chrono::steady_clock::now().time_since_epoch())
+                               .count());
 
     {
         // Hand the newest DOA report to the follower; it ignores stale ones.
@@ -1306,6 +1369,12 @@ void MainWindow::updateActiveSpeakerFollowing()
         observations, width, height, nowMs,
         live ? robot_status.pitch_degree : mSimPitch);
     mFollowDecision = d;
+    if (live && d.event == "turn_to_voice")
+    {
+        // Let Zenbo finish turning before it listens again.
+        mListenActive = false;
+        mNextListenMs = nowMs + 3000;
+    }
     if (!live)
     {
         if (d.bodyDegree)

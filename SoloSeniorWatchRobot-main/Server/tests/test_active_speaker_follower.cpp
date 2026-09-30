@@ -466,6 +466,30 @@ int main()
         CHECK(d.event != "turn_to_voice" && !d.lookAtUserDoa);
     });
 
+    test("uncalibrated DOA: turns toward a voice while no visible face speaks", [&] {
+        ActiveSpeakerConfig c;
+        c.doaMode = DoaMode::LookAtUser;
+        c.doaCalibrated = false;  // raw value 8 could be anywhere
+        Run r;
+        r.f = ActiveSpeakerFollower(c);
+        for (int i = 0; i < 8; ++i) r.step({face(1, -3.0f, 5)});  // silent face in view
+        r.f.addVoiceDirection(8, r.now + STEP);
+        auto d = r.step({face(1, -3.0f, 5)});
+        CHECK(d.event == "turn_to_voice" && d.lookAtUserDoa && *d.lookAtUserDoa == 8.0f);
+    });
+
+    test("uncalibrated DOA: no turn while a visible face is speaking", [&] {
+        ActiveSpeakerConfig c;
+        c.doaMode = DoaMode::LookAtUser;
+        c.doaCalibrated = false;
+        Run r;
+        r.f = ActiveSpeakerFollower(c);
+        for (int i = 0; i < 8; ++i) r.step({face(1, 2.0f, 5)});  // the speaker is in view
+        r.f.addVoiceDirection(120, r.now + STEP);
+        auto d = r.step({face(1, 2.0f, 5)});
+        CHECK(d.event != "turn_to_voice" && !d.lookAtUserDoa);
+    });
+
     test("after a voice turn, attends at once to a centred face LR-ASD marks speaking", [&] {
         Run r = withDoa(DoaMode::LookAtUser);
         r.f.addVoiceDirection(90, r.now + STEP);

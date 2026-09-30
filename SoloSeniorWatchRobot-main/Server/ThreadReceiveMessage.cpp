@@ -34,7 +34,8 @@ void ThreadReceiveMessage::run()
                     mpThreadProcessImage->NotifyEvent("onCompleteOfMotionPlay", chrono::system_clock::now(), RTSmessage.yaw(), RTSmessage.pitch());
                 }
                 else if (RTSmessage.description() == "onVoiceDetect" ||
-                         RTSmessage.description() == "onEventUserUtterance")
+                         RTSmessage.description() == "onEventUserUtterance" ||
+                         RTSmessage.description() == "onListenResult")
                 {
                     // Zenbo voice detection. Log every event so the DOA can be
                     // checked on the robot even when following is disabled.
@@ -44,8 +45,20 @@ void ThreadReceiveMessage::run()
                     if (RTSmessage.has_doa())
                         cout << ",\"doa\":" << RTSmessage.doa();
                     cout << "}" << endl;
-                    if (RTSmessage.has_doa() && onVoiceDirection)
+                    // Only "onDOA" events carry a fresh direction; the other
+                    // events repeat the last one (or 0).
+                    if (RTSmessage.has_doa() && RTSmessage.vad_status() == "onDOA" && onVoiceDirection)
                         onVoiceDirection(RTSmessage.doa());
+                    if (RTSmessage.description() != "onVoiceDetect" && onListenFinished)
+                        onListenFinished();
+                }
+                else if (RTSmessage.description().rfind("robot_state cmd=DS_SPEAK_AND_LISTEN", 0) == 0)
+                {
+                    // Command states forwarded by the Zenbo V2 app (poc_action "states_on").
+                    const string &d = RTSmessage.description();
+                    if ((d.find("SUCCEED") != string::npos || d.find("FAILED") != string::npos) &&
+                        onListenFinished)
+                        onListenFinished();
                 }
                 else if (RTSmessage.description() == "onActivityRestart") // The mbtx activity complete
                 {
