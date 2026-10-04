@@ -41,8 +41,10 @@ android {
             dimension 'RobotType'
             minSdk 23
             targetSdkVersion 23
-            versionName 'v2.2026.09.30-stereo'
-            versionCode 18
+            // publish_zenbo_v2.sh passes -Pv2VersionCode=<minutes since 2026> so
+            // every published build is newer and the robot app updates itself.
+            versionName 'v2.2026.10.04'
+            versionCode((project.findProperty('v2VersionCode') ?: '19') as int)
             applicationIdSuffix ".zenbo.v2"
             versionNameSuffix "-zenbo-v2"
             externalNativeBuild {

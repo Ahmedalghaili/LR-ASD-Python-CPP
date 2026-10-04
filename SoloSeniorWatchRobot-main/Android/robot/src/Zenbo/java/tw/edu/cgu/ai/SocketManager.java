@@ -33,6 +33,8 @@ public class SocketManager {
     // Send both microphones (200 ms pieces) so the server can compute the
     // direction of a voice; poc_action "stereo_off" / "stereo_on".
     public volatile boolean stereoEnabled = true;
+    // Set by MainActivity: look for a newer app version on the PC (poc_action "check_update").
+    public Runnable onCheckUpdate;
 
     public void sendStereoAudio(byte[] pcm, int rate) {
         if (!stereoEnabled || mSocketSendMessages == null)
@@ -107,6 +109,11 @@ public class SocketManager {
                     break;
                 case "track_user":
                     result = mRobotAPI.utility.trackUser();
+                    break;
+                case "check_update":
+                    if (onCheckUpdate != null)
+                        onCheckUpdate.run();
+                    result = onCheckUpdate != null ? "started" : "not available";
                     break;
                 case "stereo_on":
                 case "stereo_off":

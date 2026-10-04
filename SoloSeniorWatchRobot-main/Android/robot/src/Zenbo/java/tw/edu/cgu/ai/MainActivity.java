@@ -253,6 +253,12 @@ public class MainActivity extends Activity {
         robotCallback = new ZenboCallback();
         robotCallback.socketManager = socketManager;
         socketManager.robotCallback = robotCallback;
+        socketManager.onCheckUpdate = new Runnable() {
+            @Override
+            public void run() {
+                AppUpdater.check(MainActivity.this, socketManager.mServerURL, robotCallback);
+            }
+        };
         mRobotAPI = new RobotAPI(this, robotCallback);
         mRobotAPI.robot.registerListenCallback(robotCallback);
         socketManager.mRobotAPI = mRobotAPI;
@@ -293,6 +299,8 @@ public class MainActivity extends Activity {
                     socketManager.mPortNumber = Integer.parseInt(editText_Port.getText().toString());
                     Log.d("Record", "Before call connectSockets");
                     socketManager.connectSockets();
+                    // A newer version of this app on the PC? Then offer to install it.
+                    AppUpdater.check(MainActivity.this, socketManager.mServerURL, robotCallback);
                     socketManager.startReceiveCommands();
                     socketManager.startDisconnectionChecker();
 
