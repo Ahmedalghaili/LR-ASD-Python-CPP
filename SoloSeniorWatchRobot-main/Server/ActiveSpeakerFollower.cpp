@@ -73,6 +73,52 @@ void ActiveSpeakerFollower::reset()
     firstUpdateMs_.reset();
     yawDeg_ = 0;
     lastTargetWorldDeg_.reset();
+    noiseLevels_.clear();
+    noiseNext_ = 0;
+    voiceSinceMs_ = -1;
+    lastVoiceMs_ = -1e9;
+    lastSearchMs_ = -1e9;
+    searchCooldownUntilMs_ = 0;
+    searchSteps_ = 0;
+}
+
+void ActiveSpeakerFollower::addVoiceLevel(double dbfs, double nowMs)
+{
+    // Motor noise while turning is not a voice, and not room noise either.
+    if (nowMs < motionUntilMs_)
+        return;
+    // Room noise: the 20th percentile of the last 50 levels without a voice
+    // (~10 s). Speech is kept out, or a long talk would raise the noise level
+    // until the voice no longer counts; a "voice" lasting over 30 s is a
+    // steady new noise (a fan), and the noise level adapts to it.
+    constexpr size_t kHistory = 50;
+    double noise = dbfs;
+    if (!noiseLevels_.empty())
+    {
+        std::vector<double> sorted = noiseLevels_;
+        std::nth_element(sorted.begin(), sorted.begin() + sorted.size() / 5, sorted.end());
+        noise = sorted[sorted.size() / 5];
+    }
+    const bool voice = noiseLevels_.size() >= 10 && dbfs >= config_.voiceMinDbfs &&
+                       dbfs >= noise + config_.voiceAboveNoiseDb;
+    const bool steadySound = voice && voiceSinceMs_ >= 0 && nowMs - voiceSinceMs_ > 30000;
+    if (!voice || steadySound)
+    {
+        if (noiseLevels_.size() < kHistory)
+            noiseLevels_.push_back(dbfs);
+        else
+            noiseLevels_[noiseNext_++ % kHistory] = dbfs;
+    }
+    if (voice)
+    {
+        if (voiceSinceMs_ < 0 || nowMs - lastVoiceMs_ > config_.voiceGapMs)
+            voiceSinceMs_ = nowMs;
+        lastVoiceMs_ = nowMs;
+    }
+    else if (nowMs - lastVoiceMs_ > config_.voiceGapMs)
+    {
+        voiceSinceMs_ = -1;
+    }
 }
 
 void ActiveSpeakerFollower::addVoiceDirection(double doa, double nowMs)
@@ -346,8 +392,20 @@ ActiveSpeakerDecision ActiveSpeakerFollower::update(
         d.event = anyoneSpeaking ? "wait" : "idle";
         if (anyoneSpeaking)
             d.reason = "speech shorter than " + std::to_string(int(config_.acquireMs)) + " ms";
-        else
+        else if (!searchForVoice(nowMs, d))
             lookAtIdleFace(nowMs, currentPitch, d);
+        return d;
+    }
+
+    // A voice keeps going while the target has been silent for a long time:
+    // the speaker is someone the camera cannot see.
+    if (d.event == "idle" && speakingFor(tracks_[target_], nowMs) == 0 &&
+        nowMs - targetSinceMs_ >= config_.searchTargetSilentMs &&
+        nowMs - lastVisibleSpeechMs_ >= config_.searchTargetSilentMs && searchForVoice(nowMs, d))
+    {
+        target_ = -1;
+        targetLostSinceMs_ = -1;
+        lastTargetWorldDeg_.reset();
         return d;
     }
 
@@ -361,6 +419,7 @@ ActiveSpeakerDecision ActiveSpeakerFollower::update(
 void ActiveSpeakerFollower::attend(int track, double nowMs, ActiveSpeakerDecision &)
 {
     rotationCheckBearing_.reset();
+    searchSteps_ = 0;
     target_ = track;
     targetSinceMs_ = nowMs;
     targetLostSinceMs_ = -1;
@@ -477,6 +536,45 @@ void ActiveSpeakerFollower::returnToLastTarget(double nowMs, ActiveSpeakerDecisi
     rotationPausedUntilMs_ = 0;
     motionUntilMs_ = nowMs + std::abs(degree) / config_.bodyDegPerSec * 1000.0 + config_.settleMs;
     d.reason += "; turning " + std::to_string(degree) + " deg back to where the speaker was last seen";
+}
+
+bool ActiveSpeakerFollower::searchForVoice(double nowMs, ActiveSpeakerDecision &d)
+{
+    if (!config_.searchOnVoice)
+        return false;
+    if (voiceSinceMs_ < 0 || nowMs - lastVoiceMs_ > config_.voiceGapMs)
+    {
+        // Quiet again: the next voice starts a new search.
+        if (nowMs - lastVoiceMs_ > 3000)
+            searchSteps_ = 0;
+        return false;
+    }
+    if (nowMs - voiceSinceMs_ < config_.searchVoiceMs ||
+        nowMs - lastVisibleSpeechMs_ < config_.voiceQuietMs || nowMs < motionUntilMs_ ||
+        nowMs - *firstUpdateMs_ < config_.voiceWarmupMs ||
+        nowMs - lastSearchMs_ < config_.searchLookMs || nowMs < searchCooldownUntilMs_)
+        return false;
+    if (searchSteps_ >= config_.searchMaxSteps)
+    {
+        searchSteps_ = 0;
+        searchCooldownUntilMs_ = nowMs + config_.searchCooldownMs;
+        d.reason = "searched a full turn without finding the speaker; resting";
+        return false;
+    }
+    const int degree = static_cast<int>(std::lround(config_.searchStepDeg));
+    ++searchSteps_;
+    d.event = "search";
+    d.bodyDegree = degree;
+    d.reason = "voice heard for " + std::to_string(int(nowMs - voiceSinceMs_)) +
+               " ms but no visible face speaking; search step " + std::to_string(searchSteps_);
+    yawDeg_ += degree;
+    lastBodyMs_ = nowMs;
+    lastSearchMs_ = nowMs + std::abs(degree) / config_.bodyDegPerSec * 1000.0;
+    motionUntilMs_ = lastSearchMs_ + config_.settleMs;
+    rotationCheckBearing_.reset();
+    // A new view: the voice must be heard again before the next step.
+    voiceSinceMs_ = -1;
+    return true;
 }
 
 void ActiveSpeakerFollower::lookAtIdleFace(double nowMs, int currentPitch,

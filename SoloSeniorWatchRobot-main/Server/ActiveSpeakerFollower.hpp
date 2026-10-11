@@ -124,6 +124,20 @@ struct ActiveSpeakerConfig
     // where LR-ASD works best and the robot looks attentive.
     bool lookAtIdleFace = true;
     double idleLookMs = 1000;
+
+    // Search by turning: the microphone hears a voice but no visible face is
+    // speaking, so the speaker is outside the camera view. Without a voice
+    // direction, turn in steps and let LR-ASD check each new view.
+    bool searchOnVoice = false;
+    double voiceAboveNoiseDb = 6;    // a voice is this much above the room noise (Zenbo: speech ~6-12 dB above)
+    double voiceMinDbfs = -60;       // and at least this loud
+    double searchVoiceMs = 600;      // voice needed before searching
+    double voiceGapMs = 500;         // pauses shorter than this keep a voice going
+    double searchStepDeg = 45;       // below the ~55 deg camera view: views overlap
+    double searchLookMs = 1500;      // time LR-ASD gets to judge each view
+    int searchMaxSteps = 8;          // one full turn
+    double searchCooldownMs = 8000;  // rest after a full turn without success
+    double searchTargetSilentMs = 3000; // a visible target must be silent this long
 };
 
 // Zenbo face indices understood by Converter.FaceIndexToRobotFace().
@@ -139,7 +153,7 @@ const char *name(int face);
 struct ActiveSpeakerDecision
 {
     std::string event = "idle";    // idle, look, wait, acquire, switch, track,
-                                   // settling, reacquire, release, hold, turn_to_voice
+                                   // settling, reacquire, release, hold, turn_to_voice, search
     int targetTrack = -1;
     double bearingDeg = 0;         // target offset: + = robot's left
     double elevationDeg = 0;       // target offset: + = above camera centre
@@ -168,6 +182,10 @@ public:
 
     // Report a sound direction from Zenbo's voice detection (raw SDK value).
     void addVoiceDirection(double doa, double nowMs);
+
+    // Report the current microphone level (dBFS of the newest ~200 ms) for
+    // the search by turning. The room noise level is learned from it.
+    void addVoiceLevel(double dbfs, double nowMs);
 
     void reset();
     int target() const { return target_; }
@@ -203,6 +221,7 @@ private:
     void setFace(int face, ActiveSpeakerDecision &d);
     void returnToLastTarget(double nowMs, ActiveSpeakerDecision &d);
     void lookAtIdleFace(double nowMs, int currentPitch, ActiveSpeakerDecision &d);
+    bool searchForVoice(double nowMs, ActiveSpeakerDecision &d);
     void turnBodyAndHead(double bearingDeg, double elevationDeg, double nowMs,
                          int currentPitch, ActiveSpeakerDecision &d);
 
@@ -230,4 +249,12 @@ private:
     // direction where the target was last seen.
     double yawDeg_ = 0;
     std::optional<double> lastTargetWorldDeg_;
+    // Search by turning.
+    std::vector<double> noiseLevels_;   // recent quiet-ish levels (ring)
+    size_t noiseNext_ = 0;
+    double voiceSinceMs_ = -1;          // start of the current voice, -1 = none
+    double lastVoiceMs_ = -1e9;
+    double lastSearchMs_ = -1e9;
+    double searchCooldownUntilMs_ = 0;
+    int searchSteps_ = 0;
 };

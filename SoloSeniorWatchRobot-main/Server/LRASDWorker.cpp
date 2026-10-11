@@ -374,7 +374,7 @@ std::vector<LRASDPrediction> LRASDWorker::latestPredictions() const
 LRASDResult LRASDWorker::latestResult() const
 {
     std::lock_guard lock(predictionMutex_);
-    return {latestSequence_,latestFrameSize_,latestPredictions_};
+    return {latestSequence_,latestFrameSize_,latestPredictions_,latestVoiceDbfs_};
 }
 
 void LRASDWorker::run()
@@ -420,6 +420,15 @@ void LRASDWorker::run()
             audio.push_back(static_cast<float>(snapshot.AudioSignal.front()));
             snapshot.AudioSignal.pop();
         }
+        double voiceDbfs=-120;
+        if (!audio.empty()) {
+            // Level of the newest 200 ms: the speaker follower uses it to
+            // notice a voice when no visible face is speaking.
+            const size_t n=std::min<size_t>(audio.size(),3200);
+            double sum=0;
+            for (size_t i=audio.size()-n; i<audio.size(); ++i) sum+=audio[i]*audio[i];
+            voiceDbfs=20*std::log10(std::max(std::sqrt(sum/n),1.0)/32768.0);
+        }
         {
             // Microphone level of the newest second of audio, every ~5 s.
             static int audioLogCounter=0;
@@ -439,6 +448,7 @@ void LRASDWorker::run()
             std::lock_guard lock(predictionMutex_);
             latestPredictions_=std::move(predictions);
             latestFrameSize_=newestFrame.back().size();
+            latestVoiceDbfs_=voiceDbfs;
             ++latestSequence_;
         }
         catch(const std::exception &e) { std::cerr << "LR-ASD update failed: " << e.what() << '\n'; }

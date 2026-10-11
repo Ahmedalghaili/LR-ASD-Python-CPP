@@ -339,6 +339,90 @@ int main()
         CHECK(r.bodyCommands() == 0);
     });
 
+    // Search by turning: a follower that has learned a quiet room (-45 dBFS).
+    auto searching = [] {
+        ActiveSpeakerConfig c;
+        c.searchOnVoice = true;
+        Run r;
+        r.f = ActiveSpeakerFollower(c);
+        for (int i = 0; i < 15; ++i) { r.f.addVoiceLevel(-45, r.now + STEP); r.step({}); }
+        r.log.clear();
+        return r;
+    };
+
+    test("search: turns in steps for a voice no visible face explains", [&] {
+        Run r = searching();
+        std::vector<int> steps;
+        for (int i = 0; i < 60; ++i)
+        {
+            r.f.addVoiceLevel(-20, r.now + STEP);  // someone talks, nobody in view
+            auto d = r.step({});
+            if (d.event == "search") steps.push_back(*d.bodyDegree);
+        }
+        CHECK(steps.size() >= 3);
+        for (int s : steps) CHECK(s == 45);
+    });
+
+    test("search: stops once LR-ASD finds the speaker", [&] {
+        Run r = searching();
+        int searches = 0;
+        for (int i = 0; i < 15; ++i) { r.f.addVoiceLevel(-20, r.now + STEP); searches += r.step({}).event == "search"; }
+        CHECK(searches >= 1);
+        int acquired = 0, later = 0;
+        for (int i = 0; i < 30; ++i)
+        {
+            r.f.addVoiceLevel(-20, r.now + STEP);
+            auto d = r.step({face(1, 2.0f, 5)});  // the speaker is now in view
+            acquired += d.event == "acquire";
+            later += acquired && d.event == "search";
+        }
+        CHECK(acquired == 1);
+        CHECK(later == 0);
+    });
+
+    test("search: no search for room noise or for a voice a visible face explains", [&] {
+        Run r = searching();
+        for (int i = 0; i < 30; ++i) { r.f.addVoiceLevel(-44, r.now + STEP); r.step({}); }  // noise
+        CHECK(r.count("search") == 0);
+        Run q = searching();
+        for (int i = 0; i < 30; ++i) { q.f.addVoiceLevel(-20, q.now + STEP); q.step({face(1, 2.0f, 0)}); }
+        CHECK(q.count("search") == 0);
+    });
+
+    test("search: adapts to a loud room", [&] {
+        ActiveSpeakerConfig c;
+        c.searchOnVoice = true;
+        Run r;
+        r.f = ActiveSpeakerFollower(c);
+        for (int i = 0; i < 40; ++i) { r.f.addVoiceLevel(-25, r.now + STEP); r.step({}); }  // steady fan noise
+        CHECK(r.count("search") == 0);
+    });
+
+    test("search: rests after a full turn without finding anyone", [&] {
+        Run r = searching();
+        int beforeRest = 0;
+        bool rested = false;
+        double restAt = 0, nextSearch = 0;
+        for (int i = 0; i < 200; ++i)  // 40 s of voice from nowhere
+        {
+            r.f.addVoiceLevel(-20, r.now + STEP);
+            auto d = r.step({});
+            if (!rested && d.event == "search") ++beforeRest;
+            if (!rested && d.reason.find("resting") != std::string::npos) { rested = true; restAt = r.now; }
+            if (rested && nextSearch == 0 && d.event == "search") nextSearch = r.now;
+        }
+        CHECK(beforeRest == 8);              // 8 x 45 deg = one full turn
+        CHECK(rested);
+        CHECK(nextSearch - restAt >= 8000);  // then a rest before searching again
+    });
+
+    test("search: off by default", [&] {
+        Run r;
+        for (int i = 0; i < 15; ++i) { r.f.addVoiceLevel(-45, r.now + STEP); r.step({}); }
+        for (int i = 0; i < 40; ++i) { r.f.addVoiceLevel(-20, r.now + STEP); r.step({}); }
+        CHECK(r.count("search") == 0);
+    });
+
     test("keeps rotating while turns take effect", [] {
         Run r;
         double bearing = 30;

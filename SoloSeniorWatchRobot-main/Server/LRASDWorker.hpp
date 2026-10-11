@@ -28,6 +28,7 @@ struct LRASDResult
     std::uint64_t sequence = 0;
     cv::Size frameSize;
     std::vector<LRASDPrediction> predictions;
+    double voiceDbfs = -120;  // microphone RMS level of the newest 200 ms
 };
 
 class LRASDWorker
@@ -56,4 +57,5 @@ private:
     std::vector<LRASDPrediction> latestPredictions_;
     std::uint64_t latestSequence_ = 0;
     cv::Size latestFrameSize_;
+    double latestVoiceDbfs_ = -120;
 };

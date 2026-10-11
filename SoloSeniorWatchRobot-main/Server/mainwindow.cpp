@@ -238,6 +238,14 @@ MainWindow::MainWindow(QWidget *parent)
             config.acquireMs = acquire;
         if (qEnvironmentVariable("ACTIVE_SPEAKER_IDLE_LOOK") == "0")
             config.lookAtIdleFace = false;
+        // Search by turning for a voice no visible face explains (on unless
+        // ACTIVE_SPEAKER_SEARCH=0; off with a voice direction source).
+        config.searchOnVoice = qEnvironmentVariable("ACTIVE_SPEAKER_SEARCH") != "0" &&
+                               config.doaMode != ActiveSpeakerConfig::DoaMode::LookAtUser &&
+                               config.doaMode != ActiveSpeakerConfig::DoaMode::Rotate;
+        const double aboveNoise = qEnvironmentVariable("ACTIVE_SPEAKER_VOICE_ABOVE_NOISE_DB").toDouble(&ok);
+        if (ok && aboveNoise > 0)
+            config.voiceAboveNoiseDb = aboveNoise;
         const int speed = qEnvironmentVariable("ACTIVE_SPEAKER_BODY_SPEED").toInt(&ok);
         if (ok && speed >= 1 && speed <= 7)
             mBodySpeedLevel = speed;
@@ -246,7 +254,7 @@ MainWindow::MainWindow(QWidget *parent)
                   << (doaMode.isEmpty() ? QByteArray("log") : doaMode).constData()
                   << "\",\"doa_sign\":" << config.doaSign << ",\"doa_offset\":" << config.doaOffsetDeg
                   << ",\"body_speed\":" << mBodySpeedLevel << ",\"speaking_logit\":" << config.speakingLogit
-                  << ",\"acquire_ms\":" << config.acquireMs << ",\"idle_look\":" << config.lookAtIdleFace
+                  << ",\"acquire_ms\":" << config.acquireMs << ",\"idle_look\":" << config.lookAtIdleFace << ",\"search\":" << config.searchOnVoice
                   << ",\"doa_calibrated\":" << config.doaCalibrated << ",\"hfov\":" << config.hfovDeg << "}"
                   << std::endl;
     }
@@ -1428,6 +1436,7 @@ void MainWindow::updateActiveSpeakerFollowing()
         observations.push_back({p.trackId, p.logit, x1, y1, x2, y2});
     }
 
+    mSpeakerFollower.addVoiceLevel(result.voiceDbfs, nowMs);
     const ActiveSpeakerDecision d = mSpeakerFollower.update(
         observations, width, height, nowMs,
         live ? robot_status.pitch_degree : mSimPitch);
@@ -1454,7 +1463,7 @@ void MainWindow::updateActiveSpeakerFollowing()
 
     const bool notable = d.hasCommand() || d.voiceDoa || d.event == "acquire" ||
                          d.event == "switch" || d.event == "reacquire" || d.event == "release" ||
-                         d.event == "look";
+                         d.event == "look" || d.event == "search";
     if (!notable)
         return;
 
