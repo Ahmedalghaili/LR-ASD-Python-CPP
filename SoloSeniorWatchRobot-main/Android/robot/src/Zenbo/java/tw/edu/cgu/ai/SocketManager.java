@@ -35,6 +35,8 @@ public class SocketManager {
     public volatile boolean stereoEnabled = true;
     // Set by MainActivity: look for a newer app version on the PC (poc_action "check_update").
     public Runnable onCheckUpdate;
+    // Set by MainActivity: needed by the audio diagnostics (AudioManager).
+    public android.content.Context context;
 
     public void sendStereoAudio(byte[] pcm, int rate) {
         if (!stereoEnabled || mSocketSendMessages == null)
@@ -119,6 +121,14 @@ public class SocketManager {
                 case "stereo_off":
                     stereoEnabled = action.equals("stereo_on");
                     result = "ok";
+                    break;
+                case "audio_info":
+                    micProbe.audioInfo(context);
+                    result = "started";
+                    break;
+                case "mic_probe_devices":
+                    micProbe.probeDevices(context);
+                    result = "started";
                     break;
                 case "mic_probe":
                     micProbe.probeAll();

@@ -253,6 +253,7 @@ public class MainActivity extends Activity {
         robotCallback = new ZenboCallback();
         robotCallback.socketManager = socketManager;
         socketManager.robotCallback = robotCallback;
+        socketManager.context = getApplicationContext();
         socketManager.onCheckUpdate = new Runnable() {
             @Override
             public void run() {
