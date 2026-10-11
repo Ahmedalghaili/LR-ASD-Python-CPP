@@ -133,6 +133,9 @@ protected:
     std::atomic<bool> mListenEnded{false};
     // Voice direction from Zenbo's two microphones (ACTIVE_SPEAKER_DOA=stereo).
     bool mStereoDoaEnabled = false;
+    // ACTIVE_SPEAKER_DOA=zenbo: Zenbo's own DOA (all 4 microphones), turned
+    // with moveBody; Zenbo must be kept listening for it to report.
+    bool mZenboDoaRotate = false;
     StereoDoa mStereoDoa;
     std::deque<double> mStereoLevels;  // recent piece levels: background noise
     double mStereoLastAngle = 1e9;

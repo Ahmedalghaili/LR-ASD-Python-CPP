@@ -188,6 +188,16 @@ MainWindow::MainWindow(QWidget *parent)
             config.doaMode = ActiveSpeakerConfig::DoaMode::LookAtUser;
         else if (doaMode == "rotate")
             config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
+        else if (doaMode == "zenbo")
+        {
+            // Zenbo's onDOA is already degrees with + = left, 0 = front and
+            // +-180 = behind (calibrated on the robot with tests/zenbo_poc.py
+            // calibrate: left +90, right -105, behind 170).
+            config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
+            config.doaSign = 1;
+            config.doaOffsetDeg = 0;
+            mZenboDoaRotate = true;
+        }
         else if (doaMode == "stereo")
         {
             // Direction computed here from Zenbo's two microphones (StereoDoa):
@@ -208,7 +218,7 @@ MainWindow::MainWindow(QWidget *parent)
             config.doaOffsetDeg = offset;
         // Without a measured sign/offset the follower cannot tell whether a
         // voice is inside the camera view (see ActiveSpeakerConfig).
-        config.doaCalibrated = haveSign || ok || mStereoDoaEnabled ||
+        config.doaCalibrated = haveSign || ok || mStereoDoaEnabled || mZenboDoaRotate ||
                                qEnvironmentVariable("ACTIVE_SPEAKER_DOA_CALIBRATED") == "1";
         // Horizontal field of view measured on the original Zenbo with
         // tests/zenbo_poc.py (a 10 deg head turn moved the image ~58 of 320 px).
@@ -1269,8 +1279,11 @@ void MainWindow::keepZenboListening(double nowMs)
     if (nowMs - mStatesOnMs > 60000)
     {
         // Ask the app to forward command states (listen finished), again
-        // every minute in case the app reconnected.
+        // every minute in case the app reconnected. Zenbo's own DOA does not
+        // need the app's stereo pieces.
         sendPocAction("states_on");
+        if (!mStereoDoaEnabled)
+            sendPocAction("stereo_off");
         mStatesOnMs = nowMs;
         return;
     }
@@ -1352,7 +1365,8 @@ void MainWindow::updateActiveSpeakerFollowing()
         }
     }
 
-    if (live && mSpeakerFollower.config().doaMode == ActiveSpeakerConfig::DoaMode::LookAtUser)
+    if (live && (mSpeakerFollower.config().doaMode == ActiveSpeakerConfig::DoaMode::LookAtUser ||
+                 mZenboDoaRotate))
         keepZenboListening(std::chrono::duration<double, std::milli>(
                                std::chrono::steady_clock::now().time_since_epoch())
                                .count());
