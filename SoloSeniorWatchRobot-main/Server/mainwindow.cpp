@@ -193,7 +193,11 @@ MainWindow::MainWindow(QWidget *parent)
             // Zenbo's onDOA is already degrees with + = left, 0 = front and
             // +-180 = behind (calibrated on the robot with tests/zenbo_poc.py
             // calibrate: left +90, right -105, behind 170).
-            config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
+            // The turn itself is Zenbo's lookAtUser: after a moveBody turn
+            // Zenbo's speech system stopped reporting voices, after
+            // lookAtUser turns it kept reporting. The calibration still
+            // tells the follower whether a voice is inside the camera view.
+            config.doaMode = ActiveSpeakerConfig::DoaMode::LookAtUser;
             config.doaSign = 1;
             config.doaOffsetDeg = 0;
             mZenboDoaRotate = true;
