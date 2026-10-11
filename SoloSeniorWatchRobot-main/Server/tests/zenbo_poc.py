@@ -360,26 +360,36 @@ def step_voice(link, args):
     return results
 
 
+def wait_event(link, since, test, timeout):
+    """Wait until a robot message after `since` satisfies test(description, msg)."""
+    end = time.time() + timeout
+    while time.time() < end:
+        with link.lock:
+            if any(t > since and test(m["description"], m) for t, m in link.messages):
+                return True
+        time.sleep(0.2)
+    return False
+
+
+def listen_once(link, timeout=15):
+    """One Zenbo speak-and-listen, never interrupted (stopping it early made
+    Zenbo stop sending voice events). Returns the onDOA values heard."""
+    t0 = time.time()
+    link.send(poc_action="speak_and_listen")
+    wait_event(link, t0, lambda d, m: d == "onEventUserUtterance" or (
+        "DS_SPEAK_AND_LISTEN" in d and ("SUCCEED" in d or "FAILED" in d)), timeout)
+    time.sleep(0.5)
+    with link.lock:
+        return [m["doa"] for t, m in link.messages
+                if t > t0 and m.get("vad_status") == "onDOA" and "doa" in m]
+
+
 def step_calibrate(link, args):
     """Learn what Zenbo's DOA numbers mean: Zenbo asks the person to speak
     from the front, its left, its right and behind, and records the onDOA
     values of each position (during speak-and-listen)."""
     link.send(poc_action="states_on")
-    # The app turns the voice trigger off at start-up; in the voice test,
-    # listening events only arrived after it had been switched on and off.
-    link.send(poc_action="voice_trigger_on")
-    time.sleep(2)
-    link.send(poc_action="voice_trigger_off")
-    time.sleep(1)
-    t_check = time.time()
-    link.send(poc_action="speak_and_listen")
-    time.sleep(5)
-    link.send(poc_action="stop_listen")
-    with link.lock:
-        listening = [m for t, m in link.messages
-                     if t >= t_check and m["description"] in ("onVoiceDetect", "onEventUserUtterance")]
-    print(f"calibrate: listening check: {len(listening)} voice events "
-          f"({'OK' if listening else 'NONE - Zenbo is not reporting listening'})", flush=True)
+    link.send(poc_action="stereo_off")   # not needed here; less traffic
     positions = (("front", "Please stand in front of me."),
                  ("left", "Now please stand on my left side."),
                  ("right", "Now please stand on my right side."),
@@ -387,23 +397,26 @@ def step_calibrate(link, args):
     results = []
     for name, instruction in positions:
         print(f"calibrate/{name}: {instruction}", flush=True)
-        link.send(speak_sentence=instruction + " Then say hello when I listen.")
-        time.sleep(8)  # speech plus time to walk there
         t0 = time.time()
-        link.send(poc_action="speak_and_listen")
-        time.sleep(9)
-        t1 = time.time()
-        link.send(poc_action="stop_listen")
-        with link.lock:
-            msgs = [m for t, m in link.messages if t0 <= t <= t1]
-        doas = [m["doa"] for m in msgs if m.get("vad_status") == "onDOA" and "doa" in m]
+        link.send(speak_sentence=instruction + " When I listen, say a sentence.")
+        wait_event(link, t0, lambda d, m: d == "onTTSComplete", 12)
+        time.sleep(4)  # time to walk there
+        doas = []
+        for attempt in range(3):  # up to 3 sentences per position
+            got = listen_once(link)
+            print(f"  listen {attempt + 1}: onDOA {got}", flush=True)
+            doas += got
+            if len(doas) >= 2:
+                break
         r = {"step": f"calibrate {name}", "onDOA_values": doas,
              "doa": float(np.median(doas)) if doas else None}
         print(json.dumps(r), flush=True)
         results.append(r)
-        time.sleep(1)
     link.send(speak_sentence="Thank you. The test is finished.")
+    link.send(poc_action="stereo_on")
     link.send(poc_action="states_off")
+    found = {r["step"].split()[1]: r["doa"] for r in results}
+    print("CALIBRATION:", json.dumps(found), flush=True)
     return results
 
 
