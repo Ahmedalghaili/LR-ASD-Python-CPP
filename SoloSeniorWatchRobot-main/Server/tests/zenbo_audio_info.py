@@ -15,6 +15,7 @@ while it records.
 """
 import os
 import re
+import sys
 import time
 
 import numpy as np
@@ -99,6 +100,9 @@ def main():
     devices = next((t for t in link.info if t.startswith("audio_info devices")), "")
     print("\n=== input devices\n" + devices.partition("\n")[2], flush=True)
 
+    if "--info-only" in sys.argv:
+        print(f"saved in {OUT}/", flush=True)
+        return
     print("=== recording from every device: KEEP TALKING from the robot's left side", flush=True)
     link.send(speak_sentence="Microphone test. Please keep talking on my left side.")
     time.sleep(5)
