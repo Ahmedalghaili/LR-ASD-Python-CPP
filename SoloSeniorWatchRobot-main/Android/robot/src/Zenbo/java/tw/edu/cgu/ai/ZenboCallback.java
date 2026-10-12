@@ -154,6 +154,13 @@ public class ZenboCallback extends RobotCallback implements RobotCallback.Listen
     private void forwardVoiceEvent(String description, JSONObject jsonObject) {
         if (socketManager == null || socketManager.mSocketSendMessages == null || jsonObject == null)
             return;
+        // The complete raw JSON as well, so the server can see every key
+        // Zenbo sends (same as Log.d("ZenboJSON", jsonObject.toString(2))).
+        try {
+            sendText("zenbo_json " + description + "\n" + jsonObject.toString(2));
+        } catch (org.json.JSONException e) {
+            sendText("zenbo_json " + description + "\n" + jsonObject);
+        }
         RobotCommandOuterClass.RobotToServerMessage.Builder builder =
                 RobotCommandOuterClass.RobotToServerMessage.newBuilder()
                         .setEventTime(now())
