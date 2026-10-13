@@ -60,7 +60,9 @@ void ThreadReceiveMessage::run()
                         onListenFinished();
                 }
                 else if (RTSmessage.description().rfind("poc_result", 0) == 0 ||
-                         RTSmessage.description().rfind("robot_state cmd=UTILITY", 0) == 0)
+                         RTSmessage.description().rfind("robot_state cmd=UTILITY", 0) == 0 ||
+                         RTSmessage.description().rfind("robot_state cmd=MOVE_HEAD", 0) == 0 ||
+                         RTSmessage.description().rfind("robot_state cmd=MOTION", 0) == 0)
                 {
                     // Zenbo V2 app: result of a test/utility action, or of lookAtUser.
                     cout << "{\"component\":\"ZenboApp\",\"message\":\"" << RTSmessage.description() << "\"}" << endl;

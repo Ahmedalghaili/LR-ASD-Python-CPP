@@ -1390,7 +1390,9 @@ void MainWindow::updateActiveSpeakerFollowing()
                                  .count();
         if (nowMs - mStatesOnMs > 30000)
         {
-            // Again every 30 s in case the app reconnected.
+            // Again every 30 s in case the app reconnected. states_on: the
+            // app reports what happens to head and body commands.
+            sendPocAction("states_on");
             sendPocAction("stereo_off");
             sendPocAction("doa_listen_on");
             mStatesOnMs = nowMs;
