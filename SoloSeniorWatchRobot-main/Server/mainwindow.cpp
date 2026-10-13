@@ -196,8 +196,11 @@ MainWindow::MainWindow(QWidget *parent)
             // The Zenbo V2 app keeps Zenbo listening itself (its voice
             // direction panel loop, poc_action doa_listen_on): it restarts a
             // listen only after the previous one finished, which kept the
-            // directions coming. The server only turns the body.
-            config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
+            // directions coming. While Zenbo listens it ignores moveBody and
+            // moveHead (seen on the robot: a -80 turn was not carried out),
+            // so the voice turn is Zenbo's own lookAtUser, and listening is
+            // on only while nobody is in view.
+            config.doaMode = ActiveSpeakerConfig::DoaMode::LookAtUser;
             config.doaSign = 1;
             config.doaOffsetDeg = 0;
             mZenboDoaRotate = true;
@@ -1388,13 +1391,19 @@ void MainWindow::updateActiveSpeakerFollowing()
         const double nowMs = std::chrono::duration<double, std::milli>(
                                  std::chrono::steady_clock::now().time_since_epoch())
                                  .count();
-        if (nowMs - mStatesOnMs > 30000)
+        // Listen only while nobody is in view: with a face in view the
+        // camera follows the speaker, and moveBody/moveHead must work.
+        const bool wantListening = mSpeakerFollower.target() < 0 && nowMs - mLastFaceSeenMs > 2000;
+        if (wantListening != mAppListening || nowMs - mStatesOnMs > 30000)
         {
-            // Again every 30 s in case the app reconnected. states_on: the
-            // app reports what happens to head and body commands.
+            // On a change, and again every 30 s in case the app reconnected.
             sendPocAction("states_on");
             sendPocAction("stereo_off");
-            sendPocAction("doa_listen_on");
+            sendPocAction(wantListening ? "doa_listen_on" : "doa_listen_off");
+            if (wantListening != mAppListening)
+                std::cout << "{\"component\":\"ActiveSpeaker\",\"event\":\"zenbo_listening\",\"on\":"
+                          << wantListening << "}" << std::endl;
+            mAppListening = wantListening;
             mStatesOnMs = nowMs;
         }
     }

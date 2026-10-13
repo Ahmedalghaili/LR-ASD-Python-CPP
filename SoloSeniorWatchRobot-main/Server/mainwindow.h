@@ -140,6 +140,9 @@ protected:
     // in zenbo mode the head is put back to eye level after a voice turn and
     // while no face is seen.
     int mEyeLevelPitch = 35;
+    // While Zenbo listens it ignores moveBody/moveHead, so the app listens
+    // only while nobody is in view (see updateActiveSpeakerFollowing).
+    bool mAppListening = false;
     double mLastFaceSeenMs = 0;
     double mLastHeadResetMs = -1e9;
     StereoDoa mStereoDoa;
