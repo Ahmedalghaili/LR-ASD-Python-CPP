@@ -201,6 +201,10 @@ MainWindow::MainWindow(QWidget *parent)
             config.doaSign = 1;
             config.doaOffsetDeg = 0;
             mZenboDoaRotate = true;
+            bool pitchOk = false;
+            const int pitch = qEnvironmentVariable("ACTIVE_SPEAKER_HEAD_PITCH").toInt(&pitchOk);
+            if (pitchOk && pitch >= -15 && pitch <= 55)
+                mEyeLevelPitch = pitch;
         }
         else if (doaMode == "stereo")
         {
@@ -1455,6 +1459,27 @@ void MainWindow::updateActiveSpeakerFollowing()
         observations, width, height, nowMs,
         live ? robot_status.pitch_degree : mSimPitch);
     mFollowDecision = d;
+    if (live && mZenboDoaRotate)
+    {
+        if (!observations.empty())
+            mLastFaceSeenMs = nowMs;
+        const bool afterVoiceTurn = d.event == "turn_to_voice";
+        const bool noFace = nowMs - mLastFaceSeenMs > 3000 && nowMs - mLastHeadResetMs > 5000;
+        if ((afterVoiceTurn || noFace) && !d.headPitch)
+        {
+            RobotCommandProtobuf::RobotCommand head;
+            head.set_yaw(0);
+            head.set_pitch(mEyeLevelPitch);
+            head.set_headspeed(2);
+            sendMessageManager.AddMessage(head);
+            robot_status.yaw_degree = 0;
+            robot_status.pitch_degree = mEyeLevelPitch;
+            mLastHeadResetMs = nowMs;
+            std::cout << "{\"component\":\"ActiveSpeaker\",\"event\":\"head_eye_level\",\"pitch\":"
+                      << mEyeLevelPitch << ",\"reason\":\""
+                      << (afterVoiceTurn ? "after a voice turn" : "no face seen for 3 s") << "\"}" << std::endl;
+        }
+    }
     if (live && d.event == "turn_to_voice")
     {
         // Let Zenbo finish turning before it listens again.

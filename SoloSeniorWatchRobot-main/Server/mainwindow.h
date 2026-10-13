@@ -136,6 +136,12 @@ protected:
     // ACTIVE_SPEAKER_DOA=zenbo: Zenbo's own DOA (all 4 microphones), turned
     // with moveBody; Zenbo must be kept listening for it to report.
     bool mZenboDoaRotate = false;
+    // Zenbo's own listening moves the head (it looked down at the floor), so
+    // in zenbo mode the head is put back to eye level after a voice turn and
+    // while no face is seen.
+    int mEyeLevelPitch = 35;
+    double mLastFaceSeenMs = 0;
+    double mLastHeadResetMs = -1e9;
     StereoDoa mStereoDoa;
     std::deque<double> mStereoLevels;  // recent piece levels: background noise
     double mStereoLastAngle = 1e9;
