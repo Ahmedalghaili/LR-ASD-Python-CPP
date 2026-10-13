@@ -200,7 +200,10 @@ MainWindow::MainWindow(QWidget *parent)
             // moveHead (seen on the robot: a -80 turn was not carried out),
             // so the voice turn is Zenbo's own lookAtUser, and listening is
             // on only while nobody is in view.
-            config.doaMode = ActiveSpeakerConfig::DoaMode::LookAtUser;
+            // Listening stays on all the time: switching it restarted Zenbo's
+            // listening and it then reported no direction at all. The body
+            // turn (moveBody) was refused only while charging.
+            config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
             config.doaSign = 1;
             config.doaOffsetDeg = 0;
             mZenboDoaRotate = true;
@@ -1398,12 +1401,9 @@ void MainWindow::updateActiveSpeakerFollowing()
         // 3 s without a face, and at most once every 5 s. (Switching on every
         // passing detection restarted listening every second and Zenbo
         // reported no voice at all.)
-        bool wantListening = mAppListening;
-        const bool faceSteady = mFaceVisibleSinceMs >= 0 && nowMs - mFaceVisibleSinceMs > 2000;
-        if (mAppListening && (mSpeakerFollower.target() >= 0 || faceSteady))
-            wantListening = false;
-        else if (!mAppListening && mSpeakerFollower.target() < 0 && nowMs - mLastFaceSeenMs > 3000)
-            wantListening = true;
+        // Always listening: in the panel test (listening never switched off)
+        // every direction came through; switching it off and on stopped them.
+        bool wantListening = true;
         if (wantListening != mAppListening && nowMs - mListenSwitchMs < 5000)
             wantListening = mAppListening;
         if (wantListening != mAppListening)
