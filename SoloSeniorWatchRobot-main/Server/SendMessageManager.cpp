@@ -16,23 +16,32 @@ void SendMessageManager::Send()
     //But in this case, we have to set it here.
     ::signal(SIGPIPE, SIG_IGN);
     
+    std::lock_guard<std::mutex> lock(mutex_message_buffer);
     if( mQueue.size() > 0)
     {
         if( pSocket && pSocket->isValid())          //socket can disconnect any time, it is in another thread
         {
-            while(mQueue.size() > 2)
+            // Send every waiting command, in order. (Keeping only the last two
+            // dropped commands added together, e.g. a body turn followed by a
+            // head command.) Only a large backlog loses its oldest commands.
+            while(mQueue.size() > 30)
             {
                 mQueue.pop();
             }
             QDataStream socketStream(pSocket);
+            while (!mQueue.empty())
+            {
             RobotCommandProtobuf::RobotCommand message = mQueue.front();
             mQueue.pop();
             str_results_len = message.ByteSizeLong();
+            if (str_results_len > static_cast<int>(sizeof(str_results)))
+                continue;
             message.SerializeToArray(str_results,message.ByteSizeLong());
 
             pSocket->write("BeginOfADataFrame");
             socketStream.writeRawData(str_results, str_results_len);
             pSocket->write("EndOfADataFrame");
+            }
             //debug
             //cout << "send a message " << endl;
 
