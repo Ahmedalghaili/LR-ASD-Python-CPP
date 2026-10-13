@@ -143,6 +143,8 @@ protected:
     // While Zenbo listens it ignores moveBody/moveHead, so the app listens
     // only while nobody is in view (see updateActiveSpeakerFollowing).
     bool mAppListening = false;
+    double mFaceVisibleSinceMs = -1;   // start of the current run of seen faces
+    double mListenSwitchMs = -1e9;     // last time listening was switched
     double mLastFaceSeenMs = 0;
     double mLastHeadResetMs = -1e9;
     StereoDoa mStereoDoa;

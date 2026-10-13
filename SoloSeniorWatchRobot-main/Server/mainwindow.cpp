@@ -1392,8 +1392,22 @@ void MainWindow::updateActiveSpeakerFollowing()
                                  std::chrono::steady_clock::now().time_since_epoch())
                                  .count();
         // Listen only while nobody is in view: with a face in view the
-        // camera follows the speaker, and moveBody/moveHead must work.
-        const bool wantListening = mSpeakerFollower.target() < 0 && nowMs - mLastFaceSeenMs > 2000;
+        // camera follows the speaker, and moveBody/moveHead must work. Each
+        // switch restarts Zenbo's listening, so switch calmly: off only for
+        // a face seen for 2 s in a row (or a followed speaker), on only after
+        // 3 s without a face, and at most once every 5 s. (Switching on every
+        // passing detection restarted listening every second and Zenbo
+        // reported no voice at all.)
+        bool wantListening = mAppListening;
+        const bool faceSteady = mFaceVisibleSinceMs >= 0 && nowMs - mFaceVisibleSinceMs > 2000;
+        if (mAppListening && (mSpeakerFollower.target() >= 0 || faceSteady))
+            wantListening = false;
+        else if (!mAppListening && mSpeakerFollower.target() < 0 && nowMs - mLastFaceSeenMs > 3000)
+            wantListening = true;
+        if (wantListening != mAppListening && nowMs - mListenSwitchMs < 5000)
+            wantListening = mAppListening;
+        if (wantListening != mAppListening)
+            mListenSwitchMs = nowMs;
         if (wantListening != mAppListening || nowMs - mStatesOnMs > 30000)
         {
             // On a change, and again every 30 s in case the app reconnected.
@@ -1473,7 +1487,15 @@ void MainWindow::updateActiveSpeakerFollowing()
     if (live && mZenboDoaRotate)
     {
         if (!observations.empty())
+        {
+            if (mFaceVisibleSinceMs < 0 || nowMs - mLastFaceSeenMs > 1000)
+                mFaceVisibleSinceMs = nowMs;
             mLastFaceSeenMs = nowMs;
+        }
+        else if (nowMs - mLastFaceSeenMs > 1000)
+        {
+            mFaceVisibleSinceMs = -1;
+        }
         const bool afterVoiceTurn = d.event == "turn_to_voice";
         const bool noFace = nowMs - mLastFaceSeenMs > 3000 && nowMs - mLastHeadResetMs > 5000;
         if ((afterVoiceTurn || noFace) && !d.headPitch)
