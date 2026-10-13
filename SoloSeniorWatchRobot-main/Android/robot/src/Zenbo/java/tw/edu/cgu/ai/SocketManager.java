@@ -35,6 +35,9 @@ public class SocketManager {
     public volatile boolean stereoEnabled = true;
     // Set by MainActivity: look for a newer app version on the PC (poc_action "check_update").
     public Runnable onCheckUpdate;
+    // Set by MainActivity: start/stop the app's own listening loop that keeps
+    // Zenbo reporting voice directions (poc_action doa_listen_on / doa_listen_off).
+    public Runnable onDoaListenOn, onDoaListenOff;
     // Set by MainActivity: needed by the audio diagnostics (AudioManager).
     public android.content.Context context;
 
@@ -111,6 +114,13 @@ public class SocketManager {
                     break;
                 case "track_user":
                     result = mRobotAPI.utility.trackUser();
+                    break;
+                case "doa_listen_on":
+                case "doa_listen_off":
+                    Runnable r = action.equals("doa_listen_on") ? onDoaListenOn : onDoaListenOff;
+                    if (r != null)
+                        r.run();
+                    result = r != null ? "ok" : "not available";
                     break;
                 case "check_update":
                     if (onCheckUpdate != null)

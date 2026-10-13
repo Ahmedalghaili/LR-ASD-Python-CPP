@@ -306,6 +306,29 @@ public class MainActivity extends Activity {
                 listenActive = false;
             }
         };
+        socketManager.onDoaListenOn = new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!doaListening)
+                            setDoaListening(true);
+                    }
+                });
+            }
+        };
+        socketManager.onDoaListenOff = new Runnable() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setDoaListening(false);
+                    }
+                });
+            }
+        };
         directionView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

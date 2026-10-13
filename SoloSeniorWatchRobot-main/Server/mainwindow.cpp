@@ -193,11 +193,11 @@ MainWindow::MainWindow(QWidget *parent)
             // Zenbo's onDOA is already degrees with + = left, 0 = front and
             // +-180 = behind (calibrated on the robot with tests/zenbo_poc.py
             // calibrate: left +90, right -105, behind 170).
-            // The turn itself is Zenbo's lookAtUser: after a moveBody turn
-            // Zenbo's speech system stopped reporting voices, after
-            // lookAtUser turns it kept reporting. The calibration still
-            // tells the follower whether a voice is inside the camera view.
-            config.doaMode = ActiveSpeakerConfig::DoaMode::LookAtUser;
+            // The Zenbo V2 app keeps Zenbo listening itself (its voice
+            // direction panel loop, poc_action doa_listen_on): it restarts a
+            // listen only after the previous one finished, which kept the
+            // directions coming. The server only turns the body.
+            config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
             config.doaSign = 1;
             config.doaOffsetDeg = 0;
             mZenboDoaRotate = true;
@@ -1333,6 +1333,8 @@ void MainWindow::updateActiveSpeakerFollowing()
         if (mFollowActive)
         {
             mListenActive = false;  // let a running listen end by itself
+            if (mZenboDoaRotate)
+                sendPocAction("doa_listen_off");
             mStatesOnMs = -1e9;
             mFollowActive = false;
             mSpeakerFollower.reset();
@@ -1377,8 +1379,20 @@ void MainWindow::updateActiveSpeakerFollowing()
         }
     }
 
-    if (live && (mSpeakerFollower.config().doaMode == ActiveSpeakerConfig::DoaMode::LookAtUser ||
-                 mZenboDoaRotate))
+    if (live && mZenboDoaRotate)
+    {
+        const double nowMs = std::chrono::duration<double, std::milli>(
+                                 std::chrono::steady_clock::now().time_since_epoch())
+                                 .count();
+        if (nowMs - mStatesOnMs > 30000)
+        {
+            // Again every 30 s in case the app reconnected.
+            sendPocAction("stereo_off");
+            sendPocAction("doa_listen_on");
+            mStatesOnMs = nowMs;
+        }
+    }
+    else if (live && mSpeakerFollower.config().doaMode == ActiveSpeakerConfig::DoaMode::LookAtUser)
         keepZenboListening(std::chrono::duration<double, std::milli>(
                                std::chrono::steady_clock::now().time_since_epoch())
                                .count());
