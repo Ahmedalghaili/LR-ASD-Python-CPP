@@ -194,6 +194,44 @@ public class MainActivity extends Activity {
     private int channelConfig = AudioFormat.CHANNEL_IN_MONO;
     private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     int minBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat);   //minBufSize = 5376, but larger is better.
+    private VoiceDirectionView directionView;
+    private volatile boolean doaListening = false, listenActive = false;
+    private volatile long listenStartedMs = 0;
+    private final Handler listenHandler = new Handler(android.os.Looper.getMainLooper());
+    // Keep Zenbo listening while the panel's listening is on, so it reports the
+    // direction of each voice. Never stopSpeakAndListen: after that Zenbo
+    // stopped sending voice events until the app was restarted.
+    private final Runnable listenTick = new Runnable() {
+        @Override
+        public void run() {
+            if (!doaListening)
+                return;
+            long now = System.currentTimeMillis();
+            if (!listenActive || now - listenStartedMs > 20000) {
+                mRobotAPI.robot.speakAndListen("", new com.asus.robotframework.API.SpeakConfig().timeout(10));
+                listenActive = true;
+                listenStartedMs = now;
+                directionView.setListening(true, "Listening: speak from any side (tap to stop)");
+            }
+            listenHandler.postDelayed(this, 300);
+        }
+    };
+
+    private void setDoaListening(boolean on) {
+        doaListening = on;
+        if (on) {
+            listenActive = false;
+            listenHandler.post(listenTick);
+        } else {
+            listenHandler.removeCallbacks(listenTick);
+            directionView.setListening(false, "Tap here to start listening");
+        }
+    }
+
+    private static double dbfs(double rms) {
+        return 20 * Math.log10(Math.max(rms, 1.0) / 32768.0);
+    }
+
     // 2 when the recorder records Zenbo's two microphones (then the server can
     // compute the direction of a voice), 1 for the old mono recording.
     private volatile int recorderChannels = 1;
@@ -254,6 +292,26 @@ public class MainActivity extends Activity {
         robotCallback.socketManager = socketManager;
         socketManager.robotCallback = robotCallback;
         socketManager.context = getApplicationContext();
+        // Voice direction test panel (bottom right): Zenbo's own direction and
+        // the two microphone channels this app records. Tap it to listen.
+        directionView = new VoiceDirectionView(this);
+        android.widget.FrameLayout.LayoutParams panel = new android.widget.FrameLayout.LayoutParams(
+                560, 640, android.view.Gravity.BOTTOM | android.view.Gravity.END);
+        panel.setMargins(0, 0, 20, 20);
+        addContentView(directionView, panel);
+        robotCallback.directionView = directionView;
+        robotCallback.onListenFinished = new Runnable() {
+            @Override
+            public void run() {
+                listenActive = false;
+            }
+        };
+        directionView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setDoaListening(!doaListening);
+            }
+        });
         socketManager.onCheckUpdate = new Runnable() {
             @Override
             public void run() {
@@ -472,6 +530,20 @@ public class MainActivity extends Activity {
                             for (int i = 0; i < frames; i++)
                                 mono[i] = (short) ((buffer[2 * i] + buffer[2 * i + 1]) / 2);
                             socketManager.sendAudio(converter.ShortToByte_Twiddle_Method(mono));
+                            if (directionView != null && frames > 0) {
+                                // Levels of both channels, and whether they differ
+                                // (two microphones) or are one signal copied twice.
+                                double s0 = 0, s1 = 0, sd = 0;
+                                for (int i = 0; i < frames; i++) {
+                                    double a = buffer[2 * i], b = buffer[2 * i + 1];
+                                    s0 += a * a;
+                                    s1 += b * b;
+                                    sd += (a - b) * (a - b);
+                                }
+                                double r0 = Math.sqrt(s0 / frames), r1 = Math.sqrt(s1 / frames), rd = Math.sqrt(sd / frames);
+                                directionView.setChannels(dbfs(r0), dbfs(r1),
+                                        rd < 0.01 * Math.max(Math.max(r0, r1), 1.0) ? "SAME (one signal copied)" : "DIFFERENT");
+                            }
                             // Both microphones in 200 ms pieces for the voice direction.
                             for (int i = 0; i < frames * 2; i++) {
                                 stereoChunk[stereoFill++] = buffer[i];
@@ -486,6 +558,12 @@ public class MainActivity extends Activity {
                             short[] mono = java.util.Arrays.copyOf(buffer, minBufSize);
                             byte[] byteBuffer = converter.ShortToByte_Twiddle_Method(mono);
                             socketManager.sendAudio(byteBuffer);
+                            if (directionView != null && readSize > 0) {
+                                double s0 = 0;
+                                for (int i = 0; i < readSize; i++)
+                                    s0 += (double) buffer[i] * buffer[i];
+                                directionView.setChannels(dbfs(Math.sqrt(s0 / readSize)), -120, "MONO (1 channel)");
+                            }
                         }
                         else
                         {

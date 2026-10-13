@@ -24,6 +24,10 @@ public class ZenboCallback extends RobotCallback implements RobotCallback.Listen
     // Compatibility PoC: when true, every command state change and listen
     // result is forwarded to the server (poc_action "states_on").
     public volatile boolean forwardStates = false;
+    // Voice direction test panel on the robot screen (set by MainActivity).
+    public VoiceDirectionView directionView;
+    // Called when Zenbo's speakAndListen has finished (MainActivity restarts it).
+    public Runnable onListenFinished;
 
     @Override
     public void onStateChange(int cmd, int serial, RobotErrorCode err_code, RobotCmdState state) {
@@ -31,6 +35,10 @@ public class ZenboCallback extends RobotCallback implements RobotCallback.Listen
         Log.d("ZenboCallback", "onStateChange " + String.format("cmd %d serial %d ",cmd, serial) + "err_code " + err_code.toString() + " state " + state.toString());
         if (forwardStates)
             sendText("robot_state cmd=" + commandName(cmd) + " serial=" + serial + " state=" + state + " err=" + err_code);
+        if (cmd == RobotCommand.DS_SPEAK_AND_LISTEN.getValue()
+                && (state == RobotCmdState.SUCCEED || state == RobotCmdState.FAILED || state == RobotCmdState.PREEMPTED)
+                && onListenFinished != null)
+            onListenFinished.run();
         if (cmd == RobotCommand.MOTION_MOVE_BODY.getValue()) {        //cmd == 39 movebody
             if (state == RobotCmdState.ACTIVE) {
                 //It happen this callback is erased by the Zenbo system prompt.
@@ -145,6 +153,13 @@ public class ZenboCallback extends RobotCallback implements RobotCallback.Listen
     @Override
     public void onVoiceDetect(JSONObject jsonObject) {
         Log.d("ZenboCallback", "onVoiceDetect: " + jsonObject);
+        // Show Zenbo's direction on the robot screen (works without the PC).
+        if (directionView != null && jsonObject != null) {
+            Object vad = findKey(jsonObject, "vad_status", 3);
+            Object doa = findKey(jsonObject, "doa", 3);
+            if ("onDOA".equals(vad) && doa instanceof Number)
+                directionView.onDoa(((Number) doa).intValue());
+        }
         forwardVoiceEvent("onVoiceDetect", jsonObject);
     }
 
@@ -254,6 +269,8 @@ public class ZenboCallback extends RobotCallback implements RobotCallback.Listen
     @Override
     public void onEventUserUtterance(JSONObject jsonObject) {
         Log.d("ZenboCallback", "onEventUserUtterance: " + jsonObject);
+        if (onListenFinished != null)
+            onListenFinished.run();
         forwardVoiceEvent("onEventUserUtterance", jsonObject);
     }
 
