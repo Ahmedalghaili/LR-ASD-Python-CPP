@@ -1,0 +1,23 @@
+// Zenbo Voice Follow: a stand-alone app that turns Zenbo toward a voice using its own
+// direction (onDOA). No Wi-Fi, server, camera or recording.
+apply plugin: 'com.android.application'
+
+android {
+    compileSdk = 37
+    namespace 'tw.edu.cgu.ai.voicefollow'
+    defaultConfig {
+        applicationId 'tw.edu.cgu.ai.voicefollow'
+        minSdk 23
+        targetSdk 23
+        versionCode 1
+        versionName '1.0'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    implementation files('../robot/src/Zenbo/libs/ZenboSDK.jar')
+}
