@@ -1,4 +1,6 @@
 #include "SendMessageManager.hpp"
+#include <cstdlib>
+#include <string>
 #include <iostream>
 #include <signal.h>
 
@@ -59,6 +61,21 @@ void SendMessageManager::Send()
 
 void SendMessageManager::AddMessage(RobotCommandProtobuf::RobotCommand message)
 {
+    // SSWR_ROBOT_SILENT=1: the robot never speaks or plays motion animations
+    // (used when following a voice: Zenbo stops reporting voice directions
+    // while it talks or moves on its own).
+    static const bool silent = std::getenv("SSWR_ROBOT_SILENT") && std::string(std::getenv("SSWR_ROBOT_SILENT")) == "1";
+    if (silent)
+    {
+        message.clear_speak_sentence();
+        message.clear_smotion();
+        message.clear_motion();
+        message.clear_predefined_action();
+        message.clear_dancetype();
+        message.clear_song();
+        if (message.ByteSizeLong() == 0)
+            return;
+    }
     mutex_message_buffer.lock();
     if(message.has_speak_sentence())
     {
