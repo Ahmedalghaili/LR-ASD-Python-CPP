@@ -227,6 +227,12 @@ public class MainActivity extends Activity {
 
     private void setDoaListening(boolean on) {
         doaListening = on;
+        // Android 6 lets one recorder use the microphone: while Zenbo listens
+        // for a direction, this app stops recording so Zenbo gets the sound
+        // (with the app recording, Zenbo reported nothing).
+        socketManager.micEnabled = !on;
+        if (on && directionView != null)
+            directionView.setChannels(-120, -120, "App mic paused while Zenbo listens");
         if (on) {
             listenActive = false;
             listenHandler.post(listenTick);
