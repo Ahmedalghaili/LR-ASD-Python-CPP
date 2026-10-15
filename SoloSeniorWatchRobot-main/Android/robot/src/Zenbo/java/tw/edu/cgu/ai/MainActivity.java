@@ -197,6 +197,7 @@ public class MainActivity extends Activity {
     private VoiceDirectionView directionView;
     private volatile boolean doaListening = false, listenActive = false;
     private volatile long listenStartedMs = 0;
+    private long listenRegisteredMs = 0;
     private final Handler listenHandler = new Handler(android.os.Looper.getMainLooper());
     // Keep Zenbo listening while the panel's listening is on, so it reports the
     // direction of each voice. Never stopSpeakAndListen: after that Zenbo
@@ -208,6 +209,13 @@ public class MainActivity extends Activity {
                 return;
             long now = System.currentTimeMillis();
             if (!listenActive || now - listenStartedMs > 20000) {
+                // Zenbo drops the listen callback after a while (listens still
+                // finished, but no voice event reached the app): register it
+                // again, at most every 30 s.
+                if (now - listenRegisteredMs > 30000) {
+                    mRobotAPI.robot.registerListenCallback(robotCallback);
+                    listenRegisteredMs = now;
+                }
                 mRobotAPI.robot.speakAndListen("", new com.asus.robotframework.API.SpeakConfig().timeout(10));
                 listenActive = true;
                 listenStartedMs = now;
