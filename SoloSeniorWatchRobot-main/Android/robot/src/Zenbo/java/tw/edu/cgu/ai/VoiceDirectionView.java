@@ -28,6 +28,12 @@ class VoiceDirectionView extends View {
     private volatile String channels = "-";
     private volatile String status = "Tap here to start listening";
     private volatile boolean listening = false;
+    private volatile String lastEvent = "-";
+    private volatile int eventCount = 0;
+    private volatile long eventTime = 0;
+    // One colour per side: FRONT, LEFT, BEHIND, RIGHT.
+    private static final int[] SIDE_COLORS = {
+            Color.rgb(40, 120, 230), Color.rgb(40, 170, 80), Color.rgb(140, 70, 200), Color.rgb(240, 130, 20)};
 
     VoiceDirectionView(Context context) {
         super(context);
@@ -47,6 +53,15 @@ class VoiceDirectionView extends View {
         level0 = db0;
         level1 = db1;
         channels = comparison;
+        postInvalidate();
+    }
+
+    /** Any voice event from Zenbo's speech system (vad_status), to show that
+     *  Zenbo hears something even when it sends no direction. */
+    void onVoiceEvent(String vadStatus) {
+        lastEvent = vadStatus == null || vadStatus.isEmpty() ? "event" : vadStatus;
+        eventCount++;
+        eventTime = System.currentTimeMillis();
         postInvalidate();
     }
 
@@ -84,13 +99,20 @@ class VoiceDirectionView extends View {
         // Four sides around the robot.
         float cx = w / 2f, cy = 70 + (h * 0.55f) / 2f, r = Math.min(w, h * 0.55f) / 2f - 10;
         boolean fresh = System.currentTimeMillis() - doaTime < 4000 && doaCount > 0;
-        int lit = fresh ? sector(doa) : -1;
+        // The last direction stays coloured: bright for 4 s, then lighter.
+        int lit = doaCount > 0 ? sector(doa) : -1;
         String[] names = {"FRONT", "LEFT", "BEHIND", "RIGHT"};
         float[] start = {-135, 135, 45, -45};   // canvas angles: 0 = right, 90 = down
         RectF box = new RectF(cx - r, cy - r, cx + r, cy + r);
         for (int s = 0; s < 4; s++) {
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(s == lit ? Color.rgb(60, 190, 90) : Color.rgb(225, 225, 225));
+            int col = SIDE_COLORS[s];
+            if (s != lit)
+                paint.setColor(Color.rgb(228, 228, 228));
+            else if (fresh)
+                paint.setColor(col);
+            else   // older direction: same colour, lighter
+                paint.setColor(Color.argb(110, Color.red(col), Color.green(col), Color.blue(col)));
             c.drawArc(box, start[s], 90, true, paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setColor(Color.WHITE);
@@ -123,10 +145,15 @@ class VoiceDirectionView extends View {
         // Text lines.
         float y = cy + r + 40;
         paint.setTextSize(26);
-        paint.setColor(fresh ? Color.rgb(20, 110, 40) : Color.rgb(60, 60, 60));
+        paint.setColor(doaCount == 0 ? Color.rgb(60, 60, 60) : SIDE_COLORS[sector(doa)]);
         c.drawText(doaCount == 0 ? "No direction yet" :
-                "Direction: " + doa + " deg  (" + names[sector(doa)] + ")  #" + doaCount, 20, y, paint);
-        y += 38;
+                "Direction: " + names[sector(doa)] + "  (" + doa + " deg)  #" + doaCount, 20, y, paint);
+        y += 34;
+        boolean recent = System.currentTimeMillis() - eventTime < 3000 && eventCount > 0;
+        paint.setTextSize(22);
+        paint.setColor(recent ? Color.rgb(20, 110, 40) : Color.rgb(170, 60, 40));
+        c.drawText("Zenbo hears: " + (eventCount == 0 ? "nothing yet" : lastEvent) + "  (#" + eventCount + ")", 20, y, paint);
+        y += 34;
         paint.setColor(Color.rgb(60, 60, 60));
         paint.setTextSize(22);
         c.drawText("App mic channels:", 20, y, paint);
@@ -139,8 +166,8 @@ class VoiceDirectionView extends View {
         paint.setColor(listening ? Color.rgb(20, 110, 40) : Color.rgb(170, 60, 40));
         paint.setTextSize(24);
         c.drawText(status, 20, y, paint);
-        // Keep the "fresh" highlight fading out.
-        if (fresh)
+        // Keep the bright highlight and the event line fading out.
+        if (fresh || recent)
             postInvalidateDelayed(500);
     }
 

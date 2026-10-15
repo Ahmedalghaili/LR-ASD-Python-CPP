@@ -157,6 +157,7 @@ public class ZenboCallback extends RobotCallback implements RobotCallback.Listen
         if (directionView != null && jsonObject != null) {
             Object vad = findKey(jsonObject, "vad_status", 3);
             Object doa = findKey(jsonObject, "doa", 3);
+            directionView.onVoiceEvent(vad instanceof String ? (String) vad : "");
             if ("onDOA".equals(vad) && doa instanceof Number)
                 directionView.onDoa(((Number) doa).intValue());
         }
