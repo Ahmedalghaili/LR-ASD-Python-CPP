@@ -8,7 +8,8 @@ a level bar per microphone and a "speaking" light.
 Keys: F = the current voice is the front (sets 0 deg)   M = mirror left/right
       O = next microphone order                          Q = quit
 """
-import itertools
+import json
+import os
 import subprocess
 import threading
 import time
@@ -23,6 +24,24 @@ C = 343.0
 R = 0.032              # assumed microphone circle radius (m)
 UP = 16
 DEVICE = "hw:CARD=Array,DEV=0"
+# Calibration shared with the robot helper (respeaker_doa_sender.py).
+CALIBRATION = os.path.expanduser("~/SoloSeniorWatchRobot_build/respeaker_calibration.json")
+
+
+def load_calibration():
+    try:
+        with open(CALIBRATION) as f:
+            c = json.load(f)
+        return int(c["front_offset_deg"]), bool(c["mirror"]), ORDERS.index(c["mic_order"])
+    except (OSError, ValueError, KeyError):
+        return 0, False, 0
+
+
+def save_calibration(offset, mirror, order_i):
+    os.makedirs(os.path.dirname(CALIBRATION), exist_ok=True)
+    with open(CALIBRATION, "w") as f:
+        json.dump({"front_offset_deg": offset, "mirror": mirror, "mic_order": ORDERS[order_i],
+                   "mic_radius_m": R}, f, indent=1)
 
 NAMES = ["FRONT", "LEFT", "BEHIND", "RIGHT"]
 COLORS = [(230, 120, 40), (80, 170, 40), (200, 70, 140), (20, 130, 240)]   # BGR: blue, green, purple, orange
@@ -76,7 +95,7 @@ def srp(raw, order):
 
 def main():
     arr = Array()
-    offset, mirror, order_i = 0, False, 0
+    offset, mirror, order_i = load_calibration()
     noise = None
     angle, angle_t, strength = None, 0, 0
     history = []
@@ -141,6 +160,7 @@ def main():
             cv2.rectangle(img, (x + 80, y), (x + 380, y + 24), (225, 225, 225), -1)
             cv2.rectangle(img, (x + 80, y), (x + 80 + int(300 * frac), y + 24), (220, 140, 60), -1)
             cv2.putText(img, f"{lv:.0f} dB", (x + 390, y + 18), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (60, 60, 60), 1)
+            cv2.putText(img, f"(saved to {CALIBRATION})", (x, 470), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (120, 120, 120), 1)
         cv2.putText(img, f"front offset {offset} deg, mirror {'on' if mirror else 'off'}, mic order {ORDERS[order_i]}",
                     (x, 450), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (90, 90, 90), 1)
         for k, line in enumerate(["F: you are in front and talking -> set front",
@@ -158,6 +178,8 @@ def main():
             mirror = not mirror
         if key in (ord('o'), ord('O')):
             order_i = (order_i + 1) % len(ORDERS)
+        if key in (ord('f'), ord('F'), ord('m'), ord('M'), ord('o'), ord('O')):
+            save_calibration(offset, mirror, order_i)
     arr.proc.terminate()
     cv2.destroyAllWindows()
 
