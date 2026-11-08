@@ -18,6 +18,8 @@ import android.view.View;
  * Bottom: the two microphone channels this app records, with their levels
  * and whether they are the same signal (a copy) or different microphones.
  * Tap the panel to start or stop listening (Zenbo speakAndListen).
+ * With the reSpeaker array on Zenbo's USB the top shows the array's direction
+ * instead (setSource), and the title says the array's state.
  */
 class VoiceDirectionView extends View {
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -31,6 +33,7 @@ class VoiceDirectionView extends View {
     private volatile String lastEvent = "-";
     private volatile int eventCount = 0;
     private volatile long eventTime = 0;
+    private volatile String title = "Voice direction (Zenbo 4 mics)";
     // One colour per side: FRONT, LEFT, BEHIND, RIGHT.
     private static final int[] SIDE_COLORS = {
             Color.rgb(40, 120, 230), Color.rgb(40, 170, 80), Color.rgb(140, 70, 200), Color.rgb(240, 130, 20)};
@@ -65,6 +68,12 @@ class VoiceDirectionView extends View {
         postInvalidate();
     }
 
+    /** Title line, e.g. which microphones give the direction and their state. */
+    void setSource(String text) {
+        title = text;
+        postInvalidate();
+    }
+
     void setListening(boolean on, String text) {
         listening = on;
         status = text;
@@ -94,7 +103,7 @@ class VoiceDirectionView extends View {
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.rgb(30, 30, 30));
         paint.setTextSize(28);
-        c.drawText("Voice direction (Zenbo 4 mics)", 20, 40, paint);
+        c.drawText(title, 20, 40, paint);
 
         // Four sides around the robot.
         float cx = w / 2f, cy = 70 + (h * 0.55f) / 2f, r = Math.min(w, h * 0.55f) / 2f - 10;

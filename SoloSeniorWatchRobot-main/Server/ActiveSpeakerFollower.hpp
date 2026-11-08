@@ -165,6 +165,7 @@ struct ActiveSpeakerDecision
     std::optional<double> voiceSpeakerBearing; // bearing of the single visible
                                                // speaker at that time (calibration)
     std::string reason;
+    std::string voiceSkip;         // why a fresh voice direction did not turn the robot
 
     bool hasCommand() const { return bodyDegree || headPitch || face || lookAtUserDoa; }
 };

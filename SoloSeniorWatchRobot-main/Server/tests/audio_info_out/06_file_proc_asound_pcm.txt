@@ -1,0 +1,11 @@
+audio_info file=/proc/asound/pcm
+00-00: Cherrytrail Audio (*) :  : playback 1 : capture 1
+00-01: Deep Buffer Audio (*) :  : playback 1
+00-02: (Cherrytrail Compress) :  : playback 1
+00-03: Cherrytrail Voip (*) :  : playback 1 : capture 1
+00-04: Low Latency Audio (*) :  : playback 1 : capture 1
+00-05: Cherrytrail Probe snd-soc-dummy-dai-5 :  : playback 8 : capture 8
+00-06: Cherrytrail Capture (*) :  : capture 1
+00-10: ((null)) :  : playback 1 : capture 1
+00-11: ((null)) :  : playback 1 : capture 1
+00-12: ((null)) :  : playback 1 : capture 1

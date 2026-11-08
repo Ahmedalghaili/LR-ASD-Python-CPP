@@ -1,0 +1,26 @@
+{
+ "results": [
+  {
+   "step": "calibrate front",
+   "onDOA_values": [],
+   "doa": null
+  },
+  {
+   "step": "calibrate left",
+   "onDOA_values": [],
+   "doa": null
+  },
+  {
+   "step": "calibrate right",
+   "onDOA_values": [],
+   "doa": null
+  },
+  {
+   "step": "calibrate behind",
+   "onDOA_values": [],
+   "doa": null
+  }
+ ],
+ "summary": {},
+ "disconnects": []
+}

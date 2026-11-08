@@ -1,0 +1,374 @@
+{
+ "results": [
+  {
+   "step": "observe",
+   "camera_fps": 24.3,
+   "max_frame_gap_s": 0.69,
+   "audio_dbfs_median": -23.9,
+   "audio_dbfs_max": -21.8,
+   "audio_chunks_per_s": 10.0,
+   "messages": 1,
+   "camera_problems": []
+  },
+  {
+   "step": "head home",
+   "command": {
+    "yaw": 0,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 25.7,
+   "max_frame_gap_s": 0.63,
+   "audio_dbfs_median": -23.9,
+   "audio_dbfs_max": -20.5,
+   "audio_chunks_per_s": 10.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 0.1,
+   "image_dy_px": 0.1,
+   "match_response": 0.966,
+   "camera_turned": "no horizontal turn",
+   "camera_tilted": "no tilt",
+   "turn_deg_at_assumed_fov": 0.0,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +10",
+   "command": {
+    "yaw": 10,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 21.7,
+   "max_frame_gap_s": 0.41,
+   "audio_dbfs_median": -24.3,
+   "audio_dbfs_max": -22.4,
+   "audio_chunks_per_s": 10.3,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 61.5,
+   "image_dy_px": 1.1,
+   "match_response": 0.047,
+   "camera_turned": "left",
+   "camera_tilted": "no tilt",
+   "turn_deg_at_assumed_fov": 12.0,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +0",
+   "command": {
+    "yaw": 0,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 24.7,
+   "max_frame_gap_s": 0.08,
+   "audio_dbfs_median": -24.9,
+   "audio_dbfs_max": -22.5,
+   "audio_chunks_per_s": 10.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": -62.1,
+   "image_dy_px": -1.6,
+   "match_response": 0.046,
+   "camera_turned": "right",
+   "camera_tilted": "no tilt",
+   "turn_deg_at_assumed_fov": 12.1,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw -10",
+   "command": {
+    "yaw": -10,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 24.3,
+   "max_frame_gap_s": 0.29,
+   "audio_dbfs_median": -23.9,
+   "audio_dbfs_max": -22.2,
+   "audio_chunks_per_s": 9.7,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": -52.0,
+   "image_dy_px": 1.1,
+   "match_response": 0.148,
+   "camera_turned": "right",
+   "camera_tilted": "no tilt",
+   "turn_deg_at_assumed_fov": 10.2,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +0",
+   "command": {
+    "yaw": 0,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 18.7,
+   "max_frame_gap_s": 0.07,
+   "audio_dbfs_median": -23.8,
+   "audio_dbfs_max": -22.0,
+   "audio_chunks_per_s": 9.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 58.2,
+   "image_dy_px": 1.5,
+   "match_response": 0.253,
+   "camera_turned": "left",
+   "camera_tilted": "no tilt",
+   "turn_deg_at_assumed_fov": 11.4,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +20",
+   "command": {
+    "yaw": 20,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 23.3,
+   "max_frame_gap_s": 0.12,
+   "audio_dbfs_median": -25.2,
+   "audio_dbfs_max": -22.3,
+   "audio_chunks_per_s": 10.3,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 38.4,
+   "image_dy_px": -60.8,
+   "match_response": 0.05,
+   "camera_turned": "left",
+   "camera_tilted": "down",
+   "turn_deg_at_assumed_fov": 7.5,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +0",
+   "command": {
+    "yaw": 0,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 29.0,
+   "max_frame_gap_s": 0.6,
+   "audio_dbfs_median": -24.1,
+   "audio_dbfs_max": -22.1,
+   "audio_chunks_per_s": 10.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": -138.3,
+   "image_dy_px": 2.8,
+   "match_response": 0.108,
+   "camera_turned": "right",
+   "camera_tilted": "up",
+   "turn_deg_at_assumed_fov": 27.0,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw -20",
+   "command": {
+    "yaw": -20,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 21.7,
+   "max_frame_gap_s": 0.08,
+   "audio_dbfs_median": -24.3,
+   "audio_dbfs_max": -20.8,
+   "audio_chunks_per_s": 8.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": -110.9,
+   "image_dy_px": -0.9,
+   "match_response": -0.053,
+   "camera_turned": "right",
+   "camera_tilted": "no tilt",
+   "turn_deg_at_assumed_fov": 21.7,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +0",
+   "command": {
+    "yaw": 0,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 8.3,
+   "max_frame_gap_s": 0.78,
+   "audio_dbfs_median": -24.6,
+   "audio_dbfs_max": -20.8,
+   "audio_chunks_per_s": 8.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 114.2,
+   "image_dy_px": -16.7,
+   "match_response": 0.006,
+   "camera_turned": "left",
+   "camera_tilted": "down",
+   "turn_deg_at_assumed_fov": 22.3,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +30",
+   "command": {
+    "yaw": 30,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 39.0,
+   "max_frame_gap_s": 0.49,
+   "audio_dbfs_median": -25.5,
+   "audio_dbfs_max": -23.2,
+   "audio_chunks_per_s": 10.7,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": -137.2,
+   "image_dy_px": -57.9,
+   "match_response": 0.078,
+   "camera_turned": "right",
+   "camera_tilted": "down",
+   "turn_deg_at_assumed_fov": 26.8,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +0",
+   "command": {
+    "yaw": 0,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 21.3,
+   "max_frame_gap_s": 0.18,
+   "audio_dbfs_median": -24.5,
+   "audio_dbfs_max": -23.3,
+   "audio_chunks_per_s": 9.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 122.0,
+   "image_dy_px": 10.4,
+   "match_response": 0.083,
+   "camera_turned": "left",
+   "camera_tilted": "up",
+   "turn_deg_at_assumed_fov": 23.8,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw -30",
+   "command": {
+    "yaw": -30,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 27.0,
+   "max_frame_gap_s": 0.1,
+   "audio_dbfs_median": -24.0,
+   "audio_dbfs_max": -22.0,
+   "audio_chunks_per_s": 9.7,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 117.8,
+   "image_dy_px": 36.0,
+   "match_response": 0.016,
+   "camera_turned": "left",
+   "camera_tilted": "up",
+   "turn_deg_at_assumed_fov": 23.0,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head yaw +0",
+   "command": {
+    "yaw": 0,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 25.3,
+   "max_frame_gap_s": 0.58,
+   "audio_dbfs_median": -25.9,
+   "audio_dbfs_max": -22.9,
+   "audio_chunks_per_s": 10.3,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 121.0,
+   "image_dy_px": 42.0,
+   "match_response": -0.011,
+   "camera_turned": "left",
+   "camera_tilted": "up",
+   "turn_deg_at_assumed_fov": 23.6,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head pitch 20",
+   "command": {
+    "yaw": 0,
+    "pitch": 20,
+    "headspeed": 2
+   },
+   "camera_fps": 21.3,
+   "max_frame_gap_s": 0.1,
+   "audio_dbfs_median": -25.6,
+   "audio_dbfs_max": -22.1,
+   "audio_chunks_per_s": 9.3,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": -1.0,
+   "image_dy_px": -54.5,
+   "match_response": 0.325,
+   "camera_turned": "no horizontal turn",
+   "camera_tilted": "down",
+   "turn_deg_at_assumed_fov": 0.2,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head pitch 40",
+   "command": {
+    "yaw": 0,
+    "pitch": 40,
+    "headspeed": 2
+   },
+   "camera_fps": 29.3,
+   "max_frame_gap_s": 0.06,
+   "audio_dbfs_median": -25.3,
+   "audio_dbfs_max": -22.6,
+   "audio_chunks_per_s": 10.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 0.0,
+   "image_dy_px": 107.5,
+   "match_response": 0.06,
+   "camera_turned": "no horizontal turn",
+   "camera_tilted": "up",
+   "turn_deg_at_assumed_fov": 0.0,
+   "frame_width_px": 320
+  },
+  {
+   "step": "head pitch 30",
+   "command": {
+    "yaw": 0,
+    "pitch": 30,
+    "headspeed": 2
+   },
+   "camera_fps": 25.3,
+   "max_frame_gap_s": 0.42,
+   "audio_dbfs_median": -26.3,
+   "audio_dbfs_max": -23.1,
+   "audio_chunks_per_s": 10.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 0.9,
+   "image_dy_px": -53.9,
+   "match_response": 0.079,
+   "camera_turned": "no horizontal turn",
+   "camera_tilted": "down",
+   "turn_deg_at_assumed_fov": 0.2,
+   "frame_width_px": 320
+  }
+ ],
+ "summary": {
+  "head yaw": {
+   "positive_command_turns_camera": "left",
+   "consistent_moves": "2/4",
+   "estimated_hfov_deg": 65.5
+  }
+ },
+ "disconnects": []
+}

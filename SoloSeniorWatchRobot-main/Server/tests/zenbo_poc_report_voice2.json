@@ -1,0 +1,95 @@
+{
+ "results": [
+  {
+   "step": "observe",
+   "camera_fps": 22.5,
+   "max_frame_gap_s": 2.26,
+   "audio_dbfs_median": -24.4,
+   "audio_dbfs_max": -6.3,
+   "audio_chunks_per_s": 10.0,
+   "messages": 2,
+   "camera_problems": []
+  },
+  {
+   "step": "voice default",
+   "camera_fps": 22.8,
+   "max_frame_gap_s": 2.09,
+   "audio_dbfs_median": -37.2,
+   "audio_dbfs_max": -7.6,
+   "audio_chunks_per_s": 10.0,
+   "messages": 2,
+   "camera_problems": [],
+   "doa_events": 0,
+   "doa_values": [],
+   "vad_status": [],
+   "poc_results": [
+    "poc_result action=sdk_version result=1.0.71.1826",
+    "poc_result action=states_on result=ok"
+   ]
+  },
+  {
+   "step": "voice voice_trigger",
+   "camera_fps": 20.8,
+   "max_frame_gap_s": 2.47,
+   "audio_dbfs_median": -33.8,
+   "audio_dbfs_max": -7.8,
+   "audio_chunks_per_s": 10.0,
+   "messages": 4,
+   "camera_problems": [],
+   "doa_events": 1,
+   "doa_values": [
+    0
+   ],
+   "vad_status": [
+    "start keyword trigger"
+   ],
+   "poc_results": [
+    "poc_result action=voice_trigger_on result=15"
+   ]
+  },
+  {
+   "step": "voice speak_and_listen",
+   "camera_fps": 19.4,
+   "max_frame_gap_s": 2.36,
+   "audio_dbfs_median": -31.4,
+   "audio_dbfs_max": -8.0,
+   "audio_chunks_per_s": 10.0,
+   "messages": 28,
+   "camera_problems": [],
+   "doa_events": 16,
+   "doa_values": [
+    0,
+    0,
+    0,
+    0,
+    -90,
+    -90,
+    -90,
+    -90,
+    -90,
+    -131,
+    -90,
+    -131,
+    -131,
+    -131,
+    -131,
+    -131
+   ],
+   "vad_status": [
+    "BeginCSR",
+    "Start_Csr",
+    "Stop_Csr",
+    "User_ID",
+    "onDOA"
+   ],
+   "poc_results": [
+    "poc_result action=voice_trigger_off result=16",
+    "poc_result action=speak_and_listen result=17",
+    "poc_result action=speak_and_listen result=18",
+    "poc_result action=speak_and_listen result=19"
+   ]
+  }
+ ],
+ "summary": {},
+ "disconnects": []
+}

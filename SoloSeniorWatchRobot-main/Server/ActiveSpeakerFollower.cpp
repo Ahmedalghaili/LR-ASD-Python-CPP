@@ -265,6 +265,13 @@ ActiveSpeakerDecision ActiveSpeakerFollower::update(
                 targetLostSinceMs_ = -1;
                 return d;
             }
+            if (acts)
+                d.voiceSkip = !warmedUp                ? "starting up"
+                              : !outOfView             ? "voice in front, in the camera view"
+                              : !unexplained           ? "a face in view was speaking"
+                              : faceThere              ? "a face is already in that direction"
+                              : nowMs < motionUntilMs_ ? "still finishing a turn"
+                                                       : "less than voiceTurnGapMs since the last voice turn";
         }
     }
 

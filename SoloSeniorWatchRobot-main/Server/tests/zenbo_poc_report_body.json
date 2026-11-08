@@ -1,0 +1,91 @@
+{
+ "results": [
+  {
+   "step": "body +15",
+   "command": {
+    "degree": 15
+   },
+   "camera_fps": 0.0,
+   "max_frame_gap_s": 3.5,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 0,
+   "camera_problems": [],
+   "error": "camera stream stopped after this command (app disconnected?)"
+  },
+  {
+   "step": "body -15",
+   "command": {
+    "degree": -15
+   },
+   "camera_fps": 23.1,
+   "max_frame_gap_s": 0.58,
+   "audio_dbfs_median": -27.7,
+   "audio_dbfs_max": -24.6,
+   "audio_chunks_per_s": 10.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": -87.3,
+   "image_dy_px": -9.2,
+   "match_response": 0.142,
+   "camera_turned": "right",
+   "camera_tilted": "down",
+   "turn_deg_at_assumed_fov": 17.0,
+   "frame_width_px": 320
+  },
+  {
+   "step": "body +30",
+   "command": {
+    "degree": 30
+   },
+   "camera_fps": 25.5,
+   "max_frame_gap_s": 0.4,
+   "audio_dbfs_median": -27.9,
+   "audio_dbfs_max": -24.5,
+   "audio_chunks_per_s": 10.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": -150.3,
+   "image_dy_px": 9.0,
+   "match_response": 0.157,
+   "camera_turned": "right",
+   "camera_tilted": "up",
+   "turn_deg_at_assumed_fov": 29.3,
+   "frame_width_px": 320
+  },
+  {
+   "step": "body -30",
+   "command": {
+    "degree": -30
+   },
+   "camera_fps": 24.7,
+   "max_frame_gap_s": 0.58,
+   "audio_dbfs_median": -28.3,
+   "audio_dbfs_max": -25.0,
+   "audio_chunks_per_s": 10.0,
+   "messages": 0,
+   "camera_problems": [],
+   "image_dx_px": 157.1,
+   "image_dy_px": -6.2,
+   "match_response": 0.219,
+   "camera_turned": "left",
+   "camera_tilted": "down",
+   "turn_deg_at_assumed_fov": 30.7,
+   "frame_width_px": 320
+  }
+ ],
+ "summary": {
+  "body": {
+   "positive_command_turns_camera": "right",
+   "consistent_moves": "2/3",
+   "estimated_hfov_deg": 61.1
+  }
+ },
+ "disconnects": [
+  [
+   1790670130.3,
+   "body -15"
+  ]
+ ]
+}

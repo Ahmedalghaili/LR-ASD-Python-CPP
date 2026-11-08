@@ -1,0 +1,70 @@
+{
+ "results": [
+  {
+   "step": "observe",
+   "camera_fps": 0.0,
+   "max_frame_gap_s": 25.0,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 0,
+   "camera_problems": []
+  },
+  {
+   "step": "voice default",
+   "camera_fps": 0.0,
+   "max_frame_gap_s": 25.01,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 0,
+   "camera_problems": [],
+   "doa_events": 0,
+   "doa_values": [],
+   "vad_status": [],
+   "poc_results": []
+  },
+  {
+   "step": "voice voice_trigger",
+   "camera_fps": 25.1,
+   "max_frame_gap_s": 1.95,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 1,
+   "camera_problems": [],
+   "doa_events": 0,
+   "doa_values": [],
+   "vad_status": [],
+   "poc_results": [
+    "poc_result action=voice_trigger_on result=7"
+   ]
+  },
+  {
+   "step": "voice speak_and_listen",
+   "camera_fps": 24.9,
+   "max_frame_gap_s": 1.09,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 4,
+   "camera_problems": [],
+   "doa_events": 0,
+   "doa_values": [],
+   "vad_status": [],
+   "poc_results": [
+    "poc_result action=speak_and_listen result=9",
+    "poc_result action=speak_and_listen result=10",
+    "poc_result action=speak_and_listen result=11",
+    "poc_result action=speak_and_listen result=12"
+   ]
+  }
+ ],
+ "summary": {},
+ "disconnects": [
+  [
+   1790677704.8,
+   ""
+  ]
+ ]
+}

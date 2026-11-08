@@ -59,13 +59,24 @@ void ThreadReceiveMessage::run()
                     if (RTSmessage.description() != "onVoiceDetect" && onListenFinished)
                         onListenFinished();
                 }
+                else if (RTSmessage.description() == "respeaker_doa")
+                {
+                    if (onRespeakerReading)
+                        onRespeakerReading(RTSmessage.doa(), RTSmessage.vad_status() == "speech");
+                }
                 else if (RTSmessage.description().rfind("poc_result", 0) == 0 ||
+                         RTSmessage.description().rfind("respeaker_usb", 0) == 0 ||
+                         RTSmessage.description().rfind("audio_status", 0) == 0 ||
                          RTSmessage.description().rfind("robot_state cmd=UTILITY", 0) == 0 ||
                          RTSmessage.description().rfind("robot_state cmd=MOVE_HEAD", 0) == 0 ||
                          RTSmessage.description().rfind("robot_state cmd=MOTION", 0) == 0)
                 {
                     // Zenbo V2 app: result of a test/utility action, or of lookAtUser.
-                    cout << "{\"component\":\"ZenboApp\",\"message\":\"" << RTSmessage.description() << "\"}" << endl;
+                    const string &d = RTSmessage.description();
+                    cout << "{\"component\":\"ZenboApp\",\"message\":\"" << d << "\"}" << endl;
+                    if (onRobotMotion && (d.rfind("robot_state cmd=MOVE_HEAD", 0) == 0 ||
+                                          d.rfind("robot_state cmd=MOTION", 0) == 0))
+                        onRobotMotion(d.find("STATE_ACTIVE") != string::npos);
                 }
                 else if (RTSmessage.description().rfind("robot_state cmd=DS_SPEAK_AND_LISTEN", 0) == 0)
                 {

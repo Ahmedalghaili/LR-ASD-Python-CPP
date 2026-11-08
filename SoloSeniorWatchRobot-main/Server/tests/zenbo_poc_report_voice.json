@@ -1,0 +1,63 @@
+{
+ "results": [
+  {
+   "step": "observe",
+   "camera_fps": 21.5,
+   "max_frame_gap_s": 2.39,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 2,
+   "camera_problems": []
+  },
+  {
+   "step": "voice default",
+   "camera_fps": 23.8,
+   "max_frame_gap_s": 2.32,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 2,
+   "camera_problems": [],
+   "doa_events": 0,
+   "doa_values": [],
+   "poc_results": [
+    "poc_result action=sdk_version result=1.0.71.1826",
+    "poc_result action=states_on result=ok"
+   ]
+  },
+  {
+   "step": "voice doa_monitor",
+   "camera_fps": 24.0,
+   "max_frame_gap_s": 2.51,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 1,
+   "camera_problems": [],
+   "doa_events": 0,
+   "doa_values": [],
+   "poc_results": [
+    "poc_result action=doa_monitor_on result=error ClassNotFoundException: Didn't find class \"com.asus.robotframework.API.ExtraMethod\" on path: DexPathList[[zip file \"/data/app/tw.edu.cgu.ai.zenbo.v2-1/base.apk\"],nativeLibraryDirectories=[/data/app/tw.edu.cgu.ai.zenbo.v2-1/lib/x86_64, /data/app/tw.edu.cgu.ai.zenbo.v2-1/base.apk!/lib/x86_64, /vendor/lib64, /system/lib64]]"
+   ]
+  },
+  {
+   "step": "voice always_listen",
+   "camera_fps": 24.4,
+   "max_frame_gap_s": 1.98,
+   "audio_dbfs_median": null,
+   "audio_dbfs_max": null,
+   "audio_chunks_per_s": 0.0,
+   "messages": 2,
+   "camera_problems": [],
+   "doa_events": 0,
+   "doa_values": [],
+   "poc_results": [
+    "poc_result action=doa_monitor_off result=error ClassNotFoundException: Didn't find class \"com.asus.robotframework.API.ExtraMethod\" on path: DexPathList[[zip file \"/data/app/tw.edu.cgu.ai.zenbo.v2-1/base.apk\"],nativeLibraryDirectories=[/data/app/tw.edu.cgu.ai.zenbo.v2-1/lib/x86_64, /data/app/tw.edu.cgu.ai.zenbo.v2-1/base.apk!/lib/x86_64, /vendor/lib64, /system/lib64]]",
+    "poc_result action=always_listen_on result=error ClassNotFoundException: Didn't find class \"com.asus.robotframework.API.ExtraMethod\" on path: DexPathList[[zip file \"/data/app/tw.edu.cgu.ai.zenbo.v2-1/base.apk\"],nativeLibraryDirectories=[/data/app/tw.edu.cgu.ai.zenbo.v2-1/lib/x86_64, /data/app/tw.edu.cgu.ai.zenbo.v2-1/base.apk!/lib/x86_64, /vendor/lib64, /system/lib64]]"
+   ]
+  }
+ ],
+ "summary": {},
+ "disconnects": []
+}

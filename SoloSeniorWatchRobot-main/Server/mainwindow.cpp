@@ -1,7 +1,10 @@
 #include "mainwindow.h"
+#include <QNetworkDatagram>
 #include "utility_compass.hpp"
 #include <QAbstractItemView>
 #include <QDir>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMessageBox>
 #include <QModelIndex>
 #include <QPixmap>
@@ -17,6 +20,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/videoio.hpp>
 #ifdef USE_KEBBI
 #include "Kebbi/ui_mainwindow.h"
 #elif USE_ZENBO
@@ -212,6 +216,84 @@ MainWindow::MainWindow(QWidget *parent)
             if (pitchOk && pitch >= -15 && pitch <= 55)
                 mEyeLevelPitch = pitch;
         }
+        else if (doaMode == "respeaker")
+        {
+            // Already degrees, + = left, 0 = front (the sender applies the
+            // array's front calibration), so no sign/offset here. Zenbo does
+            // not listen, so moveBody always works and the app keeps the mic.
+            config.doaMode = ActiveSpeakerConfig::DoaMode::Rotate;
+            config.doaSign = 1;
+            config.doaOffsetDeg = 0;
+            config.doaCalibrated = true;
+            config.voiceTurnGapMs = 2500;   // the next voice may come right after a turn
+            mRespeakerSocket = new QUdpSocket(this);
+            if (!mRespeakerSocket->bind(QHostAddress::LocalHost, kRespeakerDoaPort))
+                std::cout << "{\"component\":\"ActiveSpeaker\",\"event\":\"respeaker_bind_failed\",\"port\":"
+                          << kRespeakerDoaPort << "}" << std::endl;
+            connect(mRespeakerSocket, &QUdpSocket::readyRead, this, [this]() {
+                while (mRespeakerSocket->hasPendingDatagrams())
+                {
+                    const QByteArray data = mRespeakerSocket->receiveDatagram().data().trimmed();
+                    // "RAW <array angle> <speech 0/1>": the board on Wi-Fi
+                    // (tests/respeaker_wifi_bridge.py), filtered like the
+                    // readings the Zenbo app sends (which then do not come).
+                    if (data.startsWith("RAW "))
+                    {
+                        const QList<QByteArray> parts = data.split(' ');
+                        if (parts.size() == 3)
+                            onRespeakerReading(parts[1].toInt(), parts[2] == "1");
+                        continue;
+                    }
+                    bool ok = false;
+                    const int doa = data.toInt(&ok);
+                    if (ok)
+                        addVoiceDoa(doa);
+                }
+            });
+            QFile front(QDir::homePath() + "/SoloSeniorWatchRobot_build/respeaker_seeed_front.json");
+            if (front.open(QIODevice::ReadOnly))
+                mRespeakerFront = QJsonDocument::fromJson(front.readAll()).object().value("front_deg").toInt(90);
+            bool frontOk = false;
+            const int frontEnv = qEnvironmentVariable("ACTIVE_SPEAKER_RESPEAKER_FRONT").toInt(&frontOk);
+            if (frontOk)
+                mRespeakerFront = frontEnv;
+            mRespeakerMirror = qEnvironmentVariable("ACTIVE_SPEAKER_RESPEAKER_MIRROR") == "1";
+            if (qEnvironmentVariableIsSet("ACTIVE_SPEAKER_RESPEAKER_NOISE"))
+                mRespeakerNoise = qEnvironmentVariableIntValue("ACTIVE_SPEAKER_RESPEAKER_NOISE");
+            std::cout << "{\"component\":\"ReSpeaker\",\"event\":\"config\",\"front\":" << mRespeakerFront
+                      << ",\"mirror\":" << mRespeakerMirror << ",\"noise\":" << mRespeakerNoise << "}" << std::endl;
+            const QString gate = qEnvironmentVariable("ACTIVE_SPEAKER_VOICE_GATE");
+            if (gate == "1" || gate == "respeaker")
+            {
+                mVoiceGateOn = true;
+                mVoiceGateKnownOnly = qEnvironmentVariable("ACTIVE_SPEAKER_KNOWN_ONLY") == "1";
+                if (gate == "1")
+                    mVoiceGateAudio = new QUdpSocket(this);
+                mVoiceGateResult = new QUdpSocket(this);
+                if (!mVoiceGateResult->bind(QHostAddress::LocalHost, kVoiceGateResultPort))
+                    std::cout << "{\"component\":\"VoiceGate\",\"event\":\"bind_failed\",\"port\":"
+                              << kVoiceGateResultPort << "}" << std::endl;
+                connect(mVoiceGateResult, &QUdpSocket::readyRead, this, [this]() {
+                    while (mVoiceGateResult->hasPendingDatagrams())
+                    {
+                        const QStringList parts = QString::fromUtf8(
+                            mVoiceGateResult->receiveDatagram().data()).split(' ');
+                        const double nowMs = std::chrono::duration<double, std::milli>(
+                                                 std::chrono::steady_clock::now().time_since_epoch())
+                                                 .count();
+                        mVoiceGateAudioMs = nowMs;   // any message: the gate hears audio
+                        if (parts.size() < 2 || parts[0] != "SPEECH")
+                            continue;
+                        mVoiceGateSpeechMs = nowMs;
+                        std::lock_guard<std::mutex> lock(mVoiceGateMutex);
+                        mVoiceGateSpeaker = parts[1].toStdString();
+                        mVoiceGateScore = parts.size() > 2 ? parts[2].toDouble() : 0;
+                    }
+                });
+                std::cout << "{\"component\":\"VoiceGate\",\"event\":\"config\",\"audio\":\""
+                          << gate.toStdString() << "\",\"known_only\":" << mVoiceGateKnownOnly << "}" << std::endl;
+            }
+        }
         else if (doaMode == "stereo")
         {
             // Direction computed here from Zenbo's two microphones (StereoDoa):
@@ -232,7 +314,7 @@ MainWindow::MainWindow(QWidget *parent)
             config.doaOffsetDeg = offset;
         // Without a measured sign/offset the follower cannot tell whether a
         // voice is inside the camera view (see ActiveSpeakerConfig).
-        config.doaCalibrated = haveSign || ok || mStereoDoaEnabled || mZenboDoaRotate ||
+        config.doaCalibrated = haveSign || ok || mStereoDoaEnabled || mZenboDoaRotate || mRespeakerSocket ||
                                qEnvironmentVariable("ACTIVE_SPEAKER_DOA_CALIBRATED") == "1";
         // Horizontal field of view measured on the original Zenbo with
         // tests/zenbo_poc.py (a 10 deg head turn moved the image ~58 of 320 px).
@@ -273,13 +355,19 @@ MainWindow::MainWindow(QWidget *parent)
         onStereoAudio(pcm, frames, rate);
     };
     thread_receive_message.onVoiceDirection = [this](int doa) {
-        const double nowMs = std::chrono::duration<double, std::milli>(
-                                 std::chrono::steady_clock::now().time_since_epoch())
-                                 .count();
-        std::lock_guard<std::mutex> lock(mVoiceMutex);
-        mVoiceDoas.emplace_back(doa, nowMs);
-        if (mVoiceDoas.size() > 50)
-            mVoiceDoas.erase(mVoiceDoas.begin());
+        if (!mRespeakerSocket)  // the reSpeaker array gives the direction, not Zenbo's onDOA
+            addVoiceDoa(doa);
+    };
+    thread_receive_message.onRespeakerReading = [this](int angle, bool speech) {
+        if (mRespeakerSocket)
+            onRespeakerReading(angle, speech);
+    };
+    thread_receive_message.onRobotMotion = [this](bool moving) {
+        if (mRobotMoving && !moving)
+            mRobotMoveEndMs = std::chrono::duration<double, std::milli>(
+                                  std::chrono::steady_clock::now().time_since_epoch())
+                                  .count();
+        mRobotMoving = moving;
     };
 
     thread_state_control.m_pSendMessageManager = &sendMessageManager;
@@ -624,6 +712,12 @@ void MainWindow::readSocket3()
 
     // push read buffer to mVABuffer
     mVABuffer.AddAudio(pShort, sampleCount);
+
+    if (mVoiceGateAudio)
+        for (long long i = 0; i < sampleCount; i += 4096)
+            mVoiceGateAudio->writeDatagram(reinterpret_cast<const char *>(pShort + i),
+                                           2 * std::min(4096LL, sampleCount - i),
+                                           QHostAddress::LocalHost, kVoiceGateAudioPort);
 
     // Disable here if I don't want to play audio on the server side.
     if (msetting.bServerPlaysRobotReceivedAudio)
@@ -1155,6 +1249,7 @@ void MainWindow::timer_event()
             }
             if (thread_process_image.action_option.followSpeakerEnabled())
                 drawActiveSpeakerOverlay(preview);
+            recordDemoFrame(preview);
             // Show the live camera in the application's Video Player window.
             // The old cv::imshow("Image") path opened a separate window and
             // left the Video Player window blank.
@@ -1286,6 +1381,108 @@ void MainWindow::onStereoAudio(const int16_t *pcm, size_t frames, int rate)
 }
 
 // Send a named test/utility action to the Zenbo V2 app (RobotCommand.poc_action).
+void MainWindow::addVoiceDoa(int doa)
+{
+    const double nowMs = std::chrono::duration<double, std::milli>(
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
+    std::lock_guard<std::mutex> lock(mVoiceMutex);
+    mVoiceDoas.emplace_back(doa, nowMs);
+    if (mVoiceDoas.size() > 50)
+        mVoiceDoas.erase(mVoiceDoas.begin());
+}
+
+// Called on the receive thread only.
+void MainWindow::onRespeakerReading(int angle, bool speech)
+{
+    const double nowMs = std::chrono::duration<double, std::milli>(
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
+    if (!speech || mRobotMoving || nowMs - mRobotMoveEndMs < kRespeakerAfterMoveMs)
+    {
+        mRespeakerRecent.clear();
+        return;
+    }
+    auto angleDiff = [](int a, int b) { return ((a - b) % 360 + 540) % 360 - 180; };
+    if (mRespeakerNoise >= 0 && std::abs(angleDiff(angle, mRespeakerNoise)) <= kRespeakerNoiseDeg)
+        return;
+    int doa = angleDiff(angle, mRespeakerFront);  // -180..179, + = left
+    if (mRespeakerMirror)
+        doa = -doa;
+    mRespeakerRecent.emplace_back(doa, nowMs);
+    while (nowMs - mRespeakerRecent.front().second > kRespeakerWindowMs)
+        mRespeakerRecent.pop_front();
+    // The reading that most others agree with, and those that agree.
+    std::vector<int> best;
+    for (const auto &c : mRespeakerRecent)
+    {
+        std::vector<int> near;
+        for (const auto &x : mRespeakerRecent)
+            if (std::abs(angleDiff(x.first, c.first)) <= kRespeakerSteadyDeg)
+                near.push_back(angleDiff(x.first, c.first));
+        if (near.size() > best.size())
+        {
+            for (int &d : near)
+                d += c.first;   // back to angles, unwrapped around c
+            best = near;
+        }
+    }
+    // Why a known voice gets no direction (at most once a second).
+    auto blocked = [&](const char *why) {
+        if (nowMs - mRespeakerBlockedLogMs < 1000)
+            return;
+        mRespeakerBlockedLogMs = nowMs;
+        std::cout << "{\"component\":\"ReSpeaker\",\"event\":\"voice_blocked\",\"reason\":\"" << why
+                  << "\",\"readings\":" << mRespeakerRecent.size() << ",\"agreeing\":" << best.size() << "}"
+                  << std::endl;
+    };
+    if (best.size() < kRespeakerVotes || best.size() < kRespeakerVoteShare * mRespeakerRecent.size())
+    {
+        if (mVoiceGateOn && nowMs - mVoiceGateSpeechMs <= kVoiceGateHoldMs)
+            blocked("direction readings disagree");
+        return;
+    }
+    std::string speaker = "no-audio";
+    if (mVoiceGateOn && nowMs - mVoiceGateAudioMs <= kVoiceGateAudioMs)
+    {
+        // Only while the voice gate hears a real voice (and, if asked, a
+        // known person); the readings before still count in the vote.
+        if (nowMs - mVoiceGateSpeechMs > kVoiceGateHoldMs)
+            return;
+        {
+            std::lock_guard<std::mutex> lock(mVoiceGateMutex);
+            speaker = mVoiceGateSpeaker;
+        }
+        if (mVoiceGateKnownOnly && (speaker == "?" || speaker == "unknown"))
+        {
+            blocked(speaker == "?" ? "voice not identified yet" : "unknown voice");
+            return;
+        }
+    }
+    std::nth_element(best.begin(), best.begin() + best.size() / 2, best.end());
+    doa = angleDiff(best[best.size() / 2], 0);
+    addVoiceDoa(doa);
+    mRespeakerShownDoa = doa;
+    mRespeakerDoaMs = nowMs;
+    // Show it on the robot's panel (the app draws it; at most 4 per second).
+    if (doa != mRespeakerLastDoa || nowMs - mRespeakerShownMs > 1000)
+        if (nowMs - mRespeakerShownMs > 250)
+        {
+            mRespeakerShownMs = nowMs;
+            const std::string show = "voice_show:" + std::to_string(doa) + ":" + (speaker.empty() ? "?" : speaker);
+            sendPocAction(show.c_str());
+        }
+    if (doa != mRespeakerLastDoa)
+    {
+        std::cout << "{\"component\":\"ReSpeaker\",\"event\":\"voice\",\"array_angle\":" << angle
+                  << ",\"doa\":" << doa;
+        if (mVoiceGateOn)
+            std::cout << ",\"speaker\":\"" << speaker << "\"";
+        std::cout << "}" << std::endl;
+    }
+    mRespeakerLastDoa = doa;
+}
+
 void MainWindow::sendPocAction(const char *action)
 {
     RobotCommandProtobuf::RobotCommand command;
@@ -1421,6 +1618,29 @@ void MainWindow::updateActiveSpeakerFollowing()
             mStatesOnMs = nowMs;
         }
     }
+    else if (live && mRespeakerSocket)
+    {
+        // The array gives the direction, so Zenbo must not listen: while it
+        // listens it ignores moveBody and the app pauses its recording (the
+        // server then hears nothing). Seen on the robot: turn_to_voice
+        // decided many times, no turn, while Zenbo reported Start_Csr.
+        const double nowMs = std::chrono::duration<double, std::milli>(
+                                 std::chrono::steady_clock::now().time_since_epoch())
+                                 .count();
+        if (nowMs - mStatesOnMs > 30000)
+        {
+            // Again every 30 s in case the app reconnected.
+            sendPocAction("states_on");
+            sendPocAction("stereo_off");
+            sendPocAction("doa_listen_off");
+            sendPocAction("mic_on");
+            // The robot's panel shows the array's direction with this front.
+            const std::string front = "respeaker_front:" + std::to_string(mRespeakerFront) + ":" +
+                                      (mRespeakerMirror ? "1" : "0");
+            sendPocAction(front.c_str());
+            mStatesOnMs = nowMs;
+        }
+    }
     else if (live && mSpeakerFollower.config().doaMode == ActiveSpeakerConfig::DoaMode::LookAtUser)
         keepZenboListening(std::chrono::duration<double, std::milli>(
                                std::chrono::steady_clock::now().time_since_epoch())
@@ -1484,6 +1704,13 @@ void MainWindow::updateActiveSpeakerFollowing()
         observations, width, height, nowMs,
         live ? robot_status.pitch_degree : mSimPitch);
     mFollowDecision = d;
+    if (!d.voiceSkip.empty() && nowMs - mVoiceSkipLogMs > 1000)
+    {
+        mVoiceSkipLogMs = nowMs;
+        std::cout << "{\"component\":\"ActiveSpeaker\",\"event\":\"voice_skipped\",\"voice_doa\":"
+                  << (d.voiceDoa ? int(std::lround(*d.voiceDoa)) : 0) << ",\"reason\":\"" << d.voiceSkip
+                  << "\"}" << std::endl;
+    }
     if (live && mZenboDoaRotate)
     {
         if (!observations.empty())
@@ -1638,5 +1865,123 @@ void MainWindow::drawActiveSpeakerOverlay(cv::Mat &preview)
                     cv::LINE_AA);
         cv::putText(preview, text, {10, y}, cv::FONT_HERSHEY_SIMPLEX, 0.7, yellow, 2, cv::LINE_AA);
         y += 30;
+    }
+    drawVoiceBanner(preview);
+}
+
+void MainWindow::recordDemoFrame(const cv::Mat &preview)
+{
+    // Look for the request file about twice a second (this runs every 10 ms).
+    if (++mDemoTicks % 50 == 0)
+    {
+        QFile request(QDir::homePath() + "/SoloSeniorWatchRobot_build/record_demo.path");
+        std::string path;
+        if (request.open(QIODevice::ReadOnly))
+            path = request.readAll().trimmed().toStdString();
+        if (path != mDemoPath)
+        {
+            if (mDemoWriter.isOpened())
+            {
+                mDemoWriter.release();
+                std::cout << "{\"component\":\"Demo\",\"event\":\"saved\",\"file\":\"" << mDemoPath
+                          << ".avi\"}" << std::endl;
+            }
+            mDemoPath = path;
+            if (!path.empty())
+            {
+                mDemoWriter.open(path + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), kDemoFps,
+                                 preview.size());
+                mDemoNextMs = 0;
+                std::cout << "{\"component\":\"Demo\",\"event\":\"recording\",\"file\":\"" << path
+                          << ".avi\",\"ok\":" << mDemoWriter.isOpened() << "}" << std::endl;
+            }
+        }
+    }
+    if (!mDemoWriter.isOpened())
+        return;
+    // A steady kDemoFps: repeat or skip preview frames as needed.
+    const double nowMs = std::chrono::duration<double, std::milli>(
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
+    if (mDemoNextMs == 0 || nowMs - mDemoNextMs > 1000)
+        mDemoNextMs = nowMs;
+    cv::Mat frame;
+    while (nowMs >= mDemoNextMs)
+    {
+        if (frame.empty())
+        {
+            const cv::Size size(static_cast<int>(mDemoWriter.get(cv::CAP_PROP_FRAME_WIDTH)),
+                                static_cast<int>(mDemoWriter.get(cv::CAP_PROP_FRAME_HEIGHT)));
+            if (size.area() > 0 && size != preview.size())
+                cv::resize(preview, frame, size);
+            else
+                frame = preview;
+        }
+        mDemoWriter.write(frame);
+        mDemoNextMs += 1000.0 / kDemoFps;
+    }
+}
+
+// Voice gate (VAD + CAM++) and reSpeaker direction on the video: a banner at
+// the bottom while someone talks (green = known person, orange = unknown,
+// grey = still identifying) and a compass with the voice direction.
+void MainWindow::drawVoiceBanner(cv::Mat &preview)
+{
+    if (!mVoiceGateOn)
+        return;
+    const double nowMs = std::chrono::duration<double, std::milli>(
+                             std::chrono::steady_clock::now().time_since_epoch())
+                             .count();
+    if (nowMs - mVoiceGateSpeechMs > kVoiceGateHoldMs)
+        return;
+    std::string speaker;
+    double score;
+    {
+        std::lock_guard<std::mutex> lock(mVoiceGateMutex);
+        speaker = mVoiceGateSpeaker;
+        score = mVoiceGateScore;
+    }
+    const bool haveDoa = nowMs - mRespeakerDoaMs < 2000;
+    const int doa = mRespeakerShownDoa;
+    const std::string where =
+        !haveDoa ? "" : std::abs(doa) <= 20 ? "  -  in front"
+                      : std::abs(doa) >= 160 ? "  -  behind"
+                      : cv::format("  -  %d deg %s", std::abs(doa), doa > 0 ? "left" : "right");
+    std::string text;
+    cv::Scalar color;
+    if (speaker == "?")
+    {
+        text = "VOICE  -  identifying...";
+        color = cv::Scalar(160, 160, 160);
+    }
+    else if (speaker == "unknown")
+    {
+        text = cv::format("UNKNOWN VOICE (%.2f)", score) + (mVoiceGateKnownOnly ? "  -  ignored" : where);
+        color = cv::Scalar(0, 140, 255);
+    }
+    else
+    {
+        std::string name = speaker;
+        std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+        text = name + cv::format(" IS SPEAKING (%.2f)", score) + where;
+        color = cv::Scalar(60, 200, 60);
+    }
+    const int h = 56;
+    cv::rectangle(preview, {0, preview.rows - h, preview.cols, h}, color, cv::FILLED);
+    cv::putText(preview, text, {14, preview.rows - 18}, cv::FONT_HERSHEY_SIMPLEX, 1.0,
+                cv::Scalar(255, 255, 255), 2, cv::LINE_AA);
+    if (haveDoa)
+    {
+        // Compass, seen from above: up = Zenbo's front, left = Zenbo's left.
+        const int r = 45;
+        const cv::Point c(preview.cols - r - 15, preview.rows - h - r - 15);
+        cv::circle(preview, c, r, cv::Scalar(0, 0, 0), cv::FILLED);
+        cv::circle(preview, c, r, cv::Scalar(255, 255, 255), 2, cv::LINE_AA);
+        cv::putText(preview, "front", {c.x - 22, c.y - r + 14}, cv::FONT_HERSHEY_SIMPLEX, 0.4,
+                    cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
+        const double a = doa * CV_PI / 180;
+        const cv::Point tip(c.x - (int)std::lround(r * 0.85 * std::sin(a)),
+                            c.y - (int)std::lround(r * 0.85 * std::cos(a)));
+        cv::arrowedLine(preview, c, tip, color, 4, cv::LINE_AA, 0, 0.3);
     }
 }

@@ -1,0 +1,3 @@
+audio_info devices
+input id=5 type=15 (BUILTIN_MIC) name=Zenbo channel_counts=[1, 2] index_masks=[] rates=[48000]
+input id=6 type=18 (TELEPHONY) name=Zenbo channel_counts=[1, 2] index_masks=[] rates=[48000]

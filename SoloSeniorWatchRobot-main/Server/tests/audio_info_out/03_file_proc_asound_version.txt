@@ -1,0 +1,2 @@
+audio_info file=/proc/asound/version
+Advanced Linux Sound Architecture Driver Version k3.14.64-x86_64.

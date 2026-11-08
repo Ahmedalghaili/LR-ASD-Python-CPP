@@ -35,6 +35,8 @@ public class SocketManager {
     public volatile boolean stereoEnabled = true;
     // Set by MainActivity: look for a newer app version on the PC (poc_action "check_update").
     public Runnable onCheckUpdate;
+    // Set by MainActivity: the reSpeaker array on Zenbo's USB (poc_action "respeaker_front:...").
+    public ReSpeakerUsb reSpeakerUsb;
     // Set by MainActivity: start/stop the app's own listening loop that keeps
     // Zenbo reporting voice directions (poc_action doa_listen_on / doa_listen_off).
     public Runnable onDoaListenOn, onDoaListenOff;
@@ -159,6 +161,23 @@ public class SocketManager {
                     if (action.startsWith("mic_record:")) {
                         micProbe.recordOne(action);
                         result = "started";
+                    } else if (action.startsWith("voice_show:")) {
+                        // "voice_show:<deg, + = left>:<speaker>": a voice direction the
+                        // server accepted (reSpeaker on Wi-Fi), for the panel only.
+                        // Many per second, so no poc_result.
+                        String[] p = action.split(":", 3);
+                        VoiceDirectionView v = reSpeakerUsb != null ? reSpeakerUsb.view : null;
+                        if (v != null && p.length == 3) {
+                            v.setSource("reSpeaker (Wi-Fi)");
+                            v.onDoa(Integer.parseInt(p[1]));
+                            v.onVoiceEvent("voice: " + p[2]);
+                        }
+                        return;
+                    } else if (action.startsWith("respeaker_front:") && reSpeakerUsb != null) {
+                        String[] p = action.split(":");
+                        reSpeakerUsb.front = Integer.parseInt(p[1]);
+                        reSpeakerUsb.mirror = p.length > 2 && p[2].equals("1");
+                        result = "ok";
                     } else {
                         result = "unknown action";
                     }

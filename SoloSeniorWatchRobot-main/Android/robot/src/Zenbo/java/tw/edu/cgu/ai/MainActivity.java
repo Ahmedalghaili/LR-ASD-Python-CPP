@@ -64,7 +64,9 @@ import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import android.media.AudioDeviceInfo;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
@@ -195,6 +197,8 @@ public class MainActivity extends Activity {
     private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     int minBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat);   //minBufSize = 5376, but larger is better.
     private VoiceDirectionView directionView;
+    // reSpeaker 4-mic array on Zenbo's USB: its voice direction goes to the server.
+    private ReSpeakerUsb reSpeakerUsb;
     private volatile boolean doaListening = false, listenActive = false;
     private volatile long listenStartedMs = 0;
     private long listenRegisteredMs = 0;
@@ -249,10 +253,39 @@ public class MainActivity extends Activity {
     // 2 when the recorder records Zenbo's two microphones (then the server can
     // compute the direction of a voice), 1 for the old mono recording.
     private volatile int recorderChannels = 1;
+    // Set after a two-channel recorder gave no sound for a while (seen on a
+    // Zenbo: recording, but read() never returned): record mono instead.
+    private volatile boolean forceMono = false;
 
     // Record the two microphones (channel index 0 and 1; the others are silent,
     // see Server/tests/zenbo_mic_probe.py). Fall back to mono if refused.
+    // Inputs Android offers (type numbers, AudioDeviceInfo.TYPE_*), for audio_status.
+    private String inputDevices() {
+        StringBuilder b = new StringBuilder();
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        for (AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_INPUTS))
+            b.append(b.length() == 0 ? "" : ",").append(d.getType()).append(':').append(d.getProductName());
+        return b.toString();
+    }
+
+    // With the reSpeaker on USB, Android may record from it instead of Zenbo's
+    // own microphones (seen: recording, but no sound at all): ask for the
+    // built-in microphone.
+    private AudioRecord preferBuiltinMic(AudioRecord r) {
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        for (AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_INPUTS))
+            if (d.getType() == AudioDeviceInfo.TYPE_BUILTIN_MIC) {
+                r.setPreferredDevice(d);
+                break;
+            }
+        return r;
+    }
+
     private AudioRecord createRecorder() {
+        if (forceMono) {
+            recorderChannels = 1;
+            return preferBuiltinMic(new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10));
+        }
         try {
             AudioFormat format = new AudioFormat.Builder()
                     .setEncoding(audioFormat)
@@ -266,14 +299,14 @@ public class MainActivity extends Activity {
                     .build();
             if (r.getState() == AudioRecord.STATE_INITIALIZED && r.getChannelCount() == 2) {
                 recorderChannels = 2;
-                return r;
+                return preferBuiltinMic(r);
             }
             r.release();
         } catch (Exception e) {
             Log.e("recorder", "stereo recorder failed: " + e.getMessage());
         }
         recorderChannels = 1;
-        return new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10);
+        return preferBuiltinMic(new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRate, channelConfig, audioFormat, minBufSize * 10));
     }
     private boolean status = true;
 
@@ -314,6 +347,9 @@ public class MainActivity extends Activity {
         panel.setMargins(0, 0, 20, 20);
         addContentView(directionView, panel);
         robotCallback.directionView = directionView;
+        reSpeakerUsb = new ReSpeakerUsb(this, socketManager, robotCallback);
+        reSpeakerUsb.view = directionView;
+        socketManager.reSpeakerUsb = reSpeakerUsb;
         robotCallback.onListenFinished = new Runnable() {
             @Override
             public void run() {
@@ -501,7 +537,8 @@ public class MainActivity extends Activity {
 
                     int readSize;
                     int okReads = 0, errorReads = 0, lastError = 0;
-                    long lastReport = 0, lastStartTry = 0;
+                    long lastReport = 0, lastStartTry = 0, lastDataMs = 0;
+                    int stalls = 0;
                     while (status) {
                         long now = System.currentTimeMillis();
                         boolean connected = socketManager.isConnected();
@@ -532,6 +569,7 @@ public class MainActivity extends Activity {
                                 && r.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING
                                 && now - lastStartTry > 3000) {
                             lastStartTry = now;
+                            lastDataMs = now;
                             try {
                                 r.startRecording();
                             } catch (Exception e) {
@@ -547,7 +585,10 @@ public class MainActivity extends Activity {
                                     + (checkSelfPermission(PERMISSION_RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED ? "yes" : "NO")
                                     + " recorder=" + (r == null ? "none" : r.getState() == AudioRecord.STATE_INITIALIZED ? "ready" : "FAILED")
                                     + " recording=" + (r != null && r.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING ? "yes" : "NO")
-                                    + " reads_ok=" + okReads + " read_errors=" + errorReads + " last_error=" + lastError);
+                                    + " reads_ok=" + okReads + " read_errors=" + errorReads + " last_error=" + lastError
+                                    + " stalls=" + stalls + " mode=" + (forceMono ? "mono" : "stereo-first")
+                                    + " inputs=" + inputDevices()
+                                    + " routed=" + (r == null || r.getRoutedDevice() == null ? "?" : r.getRoutedDevice().getType()));
                             okReads = 0;
                             errorReads = 0;
                         }
@@ -555,9 +596,30 @@ public class MainActivity extends Activity {
                             try { sleep(200); } catch (Exception e) { return; }
                             continue;
                         }
-                        //reading data from MIC into buffer
+                        //reading data from MIC into buffer; non-blocking, so a microphone
+                        //that never delivers is noticed instead of hanging this loop
                         int channels = r.getChannelCount();
-                        readSize = r.read(buffer, 0, channels == 2 ? buffer.length : minBufSize);
+                        readSize = r.read(buffer, 0, channels == 2 ? buffer.length : minBufSize,
+                                AudioRecord.READ_NON_BLOCKING);
+                        if (readSize == 0) {
+                            if (now - lastDataMs > 3000) {
+                                // No sound for 3 s: make a new recorder, mono if two channels failed.
+                                stalls++;
+                                if (channels == 2)
+                                    forceMono = true;
+                                try {
+                                    r.stop();
+                                } catch (Exception ignored) {
+                                }
+                                r.release();
+                                recorder = null;
+                                lastDataMs = now;
+                            }
+                            try { sleep(10); } catch (Exception e) { return; }
+                            continue;
+                        }
+                        if (readSize > 0)
+                            lastDataMs = now;
                         if( readSize >= 0 && channels == 2) {
                             okReads++;
                             // Mono for the server's speech pipeline, exactly as before:
@@ -592,7 +654,7 @@ public class MainActivity extends Activity {
                         }
                         else if( readSize >= 0) {
                             okReads++;
-                            short[] mono = java.util.Arrays.copyOf(buffer, minBufSize);
+                            short[] mono = java.util.Arrays.copyOf(buffer, readSize);
                             byte[] byteBuffer = converter.ShortToByte_Twiddle_Method(mono);
                             socketManager.sendAudio(byteBuffer);
                             if (directionView != null && readSize > 0) {
@@ -670,6 +732,8 @@ public class MainActivity extends Activity {
     {
         if( mRobotAPI != null)
             mRobotAPI.release();
+        if (reSpeakerUsb != null)
+            reSpeakerUsb.stop();
         super.onDestroy();
     }
 

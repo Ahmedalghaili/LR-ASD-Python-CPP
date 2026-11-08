@@ -1,0 +1,6030 @@
+{
+ "probe": [
+  {
+   "description": "mic_probe source=MIC setup=stereo channels=2 rate=48000 result=ok",
+   "source": "MIC",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.6,
+    -48.6
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8551
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_MIC_stereo_48000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=index2 channels=2 rate=48000 result=ok",
+   "source": "MIC",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.4,
+    -48.5
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.81
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_MIC_index2_48000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=index4 channels=4 rate=48000 result=ok",
+   "source": "MIC",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.4,
+    -48.5,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8337
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 5,
+   "wav": "mic_probe_out/probe_MIC_index4_48000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=index6 channels=6 rate=48000 result=ok",
+   "source": "MIC",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.0,
+    -49.1,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8233
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 9,
+   "wav": "mic_probe_out/probe_MIC_index6_48000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=index8 channels=8 rate=48000 result=ok",
+   "source": "MIC",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.5,
+    -48.5,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8659
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 13,
+   "wav": "mic_probe_out/probe_MIC_index8_48000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=stereo channels=2 rate=48000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.2,
+    -48.2
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8675
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_CAMCORDER_stereo_48000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=index2 channels=2 rate=48000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.5,
+    -48.5
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.7109
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_CAMCORDER_index2_48000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=index4 channels=4 rate=48000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.5,
+    -48.6,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8468
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 5,
+   "wav": "mic_probe_out/probe_CAMCORDER_index4_48000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=index6 channels=6 rate=48000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.5,
+    -48.6,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8532
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 9,
+   "wav": "mic_probe_out/probe_CAMCORDER_index6_48000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=index8 channels=8 rate=48000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.7,
+    -48.6,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8647
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 13,
+   "wav": "mic_probe_out/probe_CAMCORDER_index8_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=stereo channels=2 rate=48000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.0,
+    -49.0
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8534
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_stereo_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=index2 channels=2 rate=48000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.6,
+    -48.7
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8603
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_index2_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=index4 channels=4 rate=48000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.0,
+    -49.1,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8435
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 5,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_index4_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=index6 channels=6 rate=48000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.8,
+    -49.0,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8373
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 9,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_index6_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=index8 channels=8 rate=48000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.4,
+    -48.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8161
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 13,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_index8_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=stereo channels=2 rate=48000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -57.8,
+    -57.8
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    }
+   ],
+   "distinct_pairs": 0,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_stereo_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=index2 channels=2 rate=48000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -58.1,
+    -58.1
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    }
+   ],
+   "distinct_pairs": 0,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_index2_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=index4 channels=4 rate=48000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -58.2,
+    -58.2,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 4,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_index4_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=index6 channels=6 rate=48000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -58.3,
+    -58.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 8,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_index6_48000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=index8 channels=8 rate=48000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -57.9,
+    -57.9,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 12,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_index8_48000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=stereo channels=2 rate=48000 result=ok",
+   "source": "DEFAULT",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.6,
+    -48.7
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8609
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_DEFAULT_stereo_48000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=index2 channels=2 rate=48000 result=ok",
+   "source": "DEFAULT",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -47.6,
+    -47.6
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.5982
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_DEFAULT_index2_48000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=index4 channels=4 rate=48000 result=ok",
+   "source": "DEFAULT",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.7,
+    -48.7,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.814
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 5,
+   "wav": "mic_probe_out/probe_DEFAULT_index4_48000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=index6 channels=6 rate=48000 result=ok",
+   "source": "DEFAULT",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.8,
+    -48.9,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8355
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 9,
+   "wav": "mic_probe_out/probe_DEFAULT_index6_48000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=index8 channels=8 rate=48000 result=ok",
+   "source": "DEFAULT",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 48000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.0,
+    -49.1,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.8036
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 13,
+   "wav": "mic_probe_out/probe_DEFAULT_index8_48000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=stereo channels=2 rate=16000 result=ok",
+   "source": "MIC",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.4,
+    -49.6
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9369
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_MIC_stereo_16000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=index2 channels=2 rate=16000 result=ok",
+   "source": "MIC",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.4,
+    -49.4
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9398
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_MIC_index2_16000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=index4 channels=4 rate=16000 result=ok",
+   "source": "MIC",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.7,
+    -49.9,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9376
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 5,
+   "wav": "mic_probe_out/probe_MIC_index4_16000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=index6 channels=6 rate=16000 result=ok",
+   "source": "MIC",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.4,
+    -49.6,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.935
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 9,
+   "wav": "mic_probe_out/probe_MIC_index6_16000.wav"
+  },
+  {
+   "description": "mic_probe source=MIC setup=index8 channels=8 rate=16000 result=ok",
+   "source": "MIC",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.4,
+    -49.5,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9442
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 13,
+   "wav": "mic_probe_out/probe_MIC_index8_16000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=stereo channels=2 rate=16000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.5,
+    -49.8
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.936
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_CAMCORDER_stereo_16000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=index2 channels=2 rate=16000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.0,
+    -49.1
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9438
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_CAMCORDER_index2_16000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=index4 channels=4 rate=16000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.9,
+    -49.9,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9347
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 5,
+   "wav": "mic_probe_out/probe_CAMCORDER_index4_16000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=index6 channels=6 rate=16000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.0,
+    -49.0,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9314
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 9,
+   "wav": "mic_probe_out/probe_CAMCORDER_index6_16000.wav"
+  },
+  {
+   "description": "mic_probe source=CAMCORDER setup=index8 channels=8 rate=16000 result=ok",
+   "source": "CAMCORDER",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.5,
+    -49.7,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9378
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 13,
+   "wav": "mic_probe_out/probe_CAMCORDER_index8_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=stereo channels=2 rate=16000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.3,
+    -49.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9448
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_stereo_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=index2 channels=2 rate=16000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.3,
+    -49.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9493
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_index2_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=index4 channels=4 rate=16000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.4,
+    -49.4,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9315
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 5,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_index4_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=index6 channels=6 rate=16000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.7,
+    -49.7,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9398
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 9,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_index6_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_RECOGNITION setup=index8 channels=8 rate=16000 result=ok",
+   "source": "VOICE_RECOGNITION",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.4,
+    -49.4,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9444
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 13,
+   "wav": "mic_probe_out/probe_VOICE_RECOGNITION_index8_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=stereo channels=2 rate=16000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -57.9,
+    -57.9
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    }
+   ],
+   "distinct_pairs": 0,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_stereo_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=index2 channels=2 rate=16000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -57.8,
+    -57.8
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    }
+   ],
+   "distinct_pairs": 0,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_index2_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=index4 channels=4 rate=16000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -58.4,
+    -58.4,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 4,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_index4_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=index6 channels=6 rate=16000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -58.2,
+    -58.2,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 8,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_index6_16000.wav"
+  },
+  {
+   "description": "mic_probe source=VOICE_COMMUNICATION setup=index8 channels=8 rate=16000 result=ok",
+   "source": "VOICE_COMMUNICATION",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -57.5,
+    -57.5,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": true,
+     "silent": false,
+     "correlation": 1.0
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 12,
+   "wav": "mic_probe_out/probe_VOICE_COMMUNICATION_index8_16000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=stereo channels=2 rate=16000 result=ok",
+   "source": "DEFAULT",
+   "setup": "stereo",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.5,
+    -49.5
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9445
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_DEFAULT_stereo_16000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=index2 channels=2 rate=16000 result=ok",
+   "source": "DEFAULT",
+   "setup": "index2",
+   "channels": 2,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.5,
+    -49.5
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.94
+    }
+   ],
+   "distinct_pairs": 1,
+   "wav": "mic_probe_out/probe_DEFAULT_index2_16000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=index4 channels=4 rate=16000 result=ok",
+   "source": "DEFAULT",
+   "setup": "index4",
+   "channels": 4,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.9,
+    -50.1,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9309
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 5,
+   "wav": "mic_probe_out/probe_DEFAULT_index4_16000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=index6 channels=6 rate=16000 result=ok",
+   "source": "DEFAULT",
+   "setup": "index6",
+   "channels": 6,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -48.7,
+    -48.7,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9423
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 9,
+   "wav": "mic_probe_out/probe_DEFAULT_index6_16000.wav"
+  },
+  {
+   "description": "mic_probe source=DEFAULT setup=index8 channels=8 rate=16000 result=ok",
+   "source": "DEFAULT",
+   "setup": "index8",
+   "channels": 8,
+   "rate": 16000,
+   "result": "ok",
+   "level_dbfs": [
+    -49.0,
+    -48.9,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "pairs": [
+    {
+     "pair": [
+      0,
+      1
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.9109
+    },
+    {
+     "pair": [
+      0,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      0,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      2
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      3
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      4
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      5
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      6
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      1,
+      7
+     ],
+     "identical": false,
+     "silent": false,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      3
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      2,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      4
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      3,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      5
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      4,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      6
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      5,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    },
+    {
+     "pair": [
+      6,
+      7
+     ],
+     "identical": true,
+     "silent": true,
+     "correlation": 0.0
+    }
+   ],
+   "distinct_pairs": 13,
+   "wav": "mic_probe_out/probe_DEFAULT_index8_16000.wav"
+  }
+ ],
+ "direction": [
+  {
+   "position": "front",
+   "levels_dbfs": [
+    -42.8,
+    -41.6,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "tdoa": {
+    "0-1": {
+     "tdoa_us": -15.6,
+     "consistency": 1.0
+    },
+    "0-2": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-2": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "5-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "5-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "6-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    }
+   }
+  },
+  {
+   "position": "left",
+   "levels_dbfs": [
+    -44.7,
+    -45.0,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "tdoa": {
+    "0-1": {
+     "tdoa_us": -182.3,
+     "consistency": 0.89
+    },
+    "0-2": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-2": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "5-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "5-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "6-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    }
+   }
+  },
+  {
+   "position": "right",
+   "levels_dbfs": [
+    -47.1,
+    -46.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "tdoa": {
+    "0-1": {
+     "tdoa_us": 224.0,
+     "consistency": 0.96
+    },
+    "0-2": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-2": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "5-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "5-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "6-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    }
+   }
+  },
+  {
+   "position": "behind",
+   "levels_dbfs": [
+    -48.2,
+    -47.9,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3,
+    -90.3
+   ],
+   "tdoa": {
+    "0-1": {
+     "tdoa_us": 41.7,
+     "consistency": 0.79
+    },
+    "0-2": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "0-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-2": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "1-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-3": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "2-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-4": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "3-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-5": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "4-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "5-6": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "5-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    },
+    "6-7": {
+     "tdoa_us": -1500.0,
+     "consistency": 1.0
+    }
+   }
+  }
+ ],
+ "best": {
+  "source": "MIC",
+  "setup": "index8",
+  "rate": 48000
+ },
+ "result": "see direction delays per position"
+}

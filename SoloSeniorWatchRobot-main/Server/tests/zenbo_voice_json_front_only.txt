@@ -1,0 +1,962 @@
+=== 13:36:58 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr_Done",
+    "sound_level": 0,
+    "doa": 0
+  }
+}
+
+=== 13:36:58 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr_Done",
+    "sound_level": 0,
+    "doa": 0
+  }
+}
+
+=== 13:37:01 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr_Done",
+    "sound_level": 0,
+    "doa": 0
+  }
+}
+
+=== 13:37:01 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr_Done",
+    "sound_level": 0,
+    "doa": 0
+  }
+}
+
+=== 13:37:07 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "BeginCSR",
+    "sound_level": 0,
+    "doa": 0
+  }
+}
+
+=== 13:37:07 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 0
+  }
+}
+
+=== 13:37:08 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 0
+  }
+}
+
+=== 13:37:09 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 0
+  }
+}
+
+=== 13:37:09 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "onDOA",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:09 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "User_ID",
+    "sound_level": -1000,
+    "value": {
+      "UserID": "unknown",
+      "Score": 0
+    }
+  }
+}
+
+=== 13:37:11 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:11 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:11 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "onDOA",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:11 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "User_ID",
+    "sound_level": -1000,
+    "value": {
+      "UserID": "unknown",
+      "Score": 0
+    }
+  }
+}
+
+=== 13:37:11 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:12 zenbo_json onEventUserUtterance
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_user_utterance": {
+    "user_utterance": "[{\"CsrType\":\"vocon\",\"result\":\"8 \"}]",
+    "timp_stamp": 1791869832673,
+    "doa": 10,
+    "speech_data_path": "\/storage\/emulated\/0\/Logs\/DS\/pcmRecord\/20261013\/d01f0a064ba0d8b_20261013_133711_707.pcm",
+    "error_code": "success",
+    "CsrTimeSpent": 113,
+    "speaker_id": {
+      "UserID": "unknown",
+      "Score": 0
+    }
+  }
+}
+
+=== 13:37:12 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "onDOA",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:12 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "User_ID",
+    "sound_level": -1000,
+    "value": {
+      "UserID": "unknown",
+      "Score": "0"
+    }
+  }
+}
+
+=== 13:37:13 zenbo_json onListenResult
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_slu_query": {
+    "user_utterance": "[{\"CsrType\":\"vocon\",\"result\":\"8 \"}]",
+    "correctedSentence": "8",
+    "error_code": "success",
+    "isTencentResut": false,
+    "app_semantic": {
+      "beliefs": {
+        "phraseNumber": {
+          "value": "",
+          "concept": ""
+        },
+        "unit": {
+          "value": "",
+          "concept": ""
+        },
+        "index": {
+          "value": "8",
+          "concept": "base.generic.number"
+        },
+        "index_ordinal": {
+          "value": "",
+          "concept": ""
+        }
+      },
+      "phraseNumber": "",
+      "unit": "",
+      "index": "8",
+      "index_ordinal": "",
+      "Phrase": [],
+      "Domain": "1300",
+      "input_context": "SystemCommandIntent",
+      "voconLearnFlag": false,
+      "originalSentence": "8",
+      "correctedSentence": "8",
+      "IntentionId": "base.plan.select.list",
+      "grammarSentence": "<base.generic.number>",
+      "CrossIntent": false,
+      "fullLaunchActivityName": true,
+      "domain": "com.asus.systemplan",
+      "version": "0,1,32",
+      "launch_activity": "",
+      "output_text": "",
+      "output_context": [],
+      "ask_back_status": "NONE",
+      "continuousSpeech": true,
+      "foregroundSluMode": true,
+      "askBackResponse": false
+    },
+    "doa": 10,
+    "DsTimeSpent": 1230,
+    "CsrTimeSpent": 113,
+    "speaker_id": {
+      "UserID": "unknown",
+      "Score": 0
+    }
+  }
+}
+
+=== 13:37:13 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:20 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:20 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:22 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:22 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 10
+  }
+}
+
+=== 13:37:22 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "onDOA",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:22 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "User_ID",
+    "sound_level": -1000,
+    "value": {
+      "UserID": "unknown",
+      "Score": 0
+    }
+  }
+}
+
+=== 13:37:26 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:26 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:26 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "onDOA",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:26 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "User_ID",
+    "sound_level": -1000,
+    "value": {
+      "UserID": "unknown",
+      "Score": 0
+    }
+  }
+}
+
+=== 13:37:32 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:32 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:38 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:38 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:45 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:45 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:51 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:51 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:57 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:57 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:57 zenbo_json onListenResult
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_slu_query": {
+    "user_utterance": "[{\"CsrType\":\"ERROR\"}]",
+    "error_code": "csr_timeout",
+    "isTencentResut": false,
+    "app_semantic": {},
+    "doa": 3
+  }
+}
+
+=== 13:37:57 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "FinishCSR",
+    "sound_level": 0,
+    "doa": 3,
+    "time_onHeyZenbo2onBeginningOfSpeech": 9730
+  }
+}
+
+=== 13:37:57 zenbo_json onEventUserUtterance
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_user_utterance": {
+    "user_utterance": "[{\"CsrType\":\"ERROR\"}]",
+    "timp_stamp": 1791869877971,
+    "doa": 3,
+    "speech_data_path": "",
+    "error_code": "timeout"
+  }
+}
+
+=== 13:37:57 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "BeginCSR",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:37:57 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:03 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:03 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:10 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:10 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:16 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:16 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:22 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:22 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:28 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:28 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:28 zenbo_json onListenResult
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_slu_query": {
+    "user_utterance": "[{\"CsrType\":\"ERROR\"}]",
+    "error_code": "csr_timeout",
+    "isTencentResut": false,
+    "app_semantic": {},
+    "doa": 3
+  }
+}
+
+=== 13:38:28 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "FinishCSR",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:28 zenbo_json onEventUserUtterance
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_user_utterance": {
+    "user_utterance": "[{\"CsrType\":\"ERROR\"}]",
+    "timp_stamp": 1791869909229,
+    "doa": 3,
+    "speech_data_path": "",
+    "error_code": "timeout"
+  }
+}
+
+=== 13:38:28 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "BeginCSR",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:28 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:35 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:35 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:41 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:41 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:47 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:47 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:53 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:53 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Start_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:59 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:59 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "Stop_Csr",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:38:59 zenbo_json onListenResult
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_slu_query": {
+    "user_utterance": "[{\"CsrType\":\"ERROR\"}]",
+    "error_code": "csr_timeout",
+    "isTencentResut": false,
+    "app_semantic": {},
+    "doa": 3
+  }
+}
+
+=== 13:38:59 zenbo_json onVoiceDetect
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_vad_status": {
+    "vad_status": "FinishCSR",
+    "sound_level": 0,
+    "doa": 3
+  }
+}
+
+=== 13:39:00 zenbo_json onEventUserUtterance
+{
+  "system_info": {
+    "version_info": "ver1.0"
+  },
+  "event_user_utterance": {
+    "user_utterance": "[{\"CsrType\":\"ERROR\"}]",
+    "timp_stamp": 1791869940437,
+    "doa": 3,
+    "speech_data_path": "",
+    "error_code": "timeout"
+  }
+}
+

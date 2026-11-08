@@ -39,6 +39,13 @@ public:
     // Called for every Zenbo voice-detection event that carries a direction of
     // arrival (raw SDK value). Set before the thread starts.
     std::function<void(int doa)> onVoiceDirection;
+    // Called with each reading of the reSpeaker array on Zenbo's USB
+    // ("respeaker_doa" from the Zenbo app): the array's angle and whether it
+    // hears speech.
+    std::function<void(int angle, bool speech)> onRespeakerReading;
+    // Called for each state of a body or head motion Zenbo reports
+    // (robot_state MOTION_* / MOVE_HEAD): true while it runs, false at its end.
+    std::function<void(bool moving)> onRobotMotion;
     // Called when Zenbo's listening (speakAndListen) has finished: an
     // utterance, a listen result, or the command's final state.
     std::function<void()> onListenFinished;

@@ -80,3 +80,5 @@ captures/
 
 # Local configuration
 local.properties
+# Wi-Fi password for the reSpeaker XIAO sketch
+Server/tests/respeaker_wifi_audio/wifi_secrets.h

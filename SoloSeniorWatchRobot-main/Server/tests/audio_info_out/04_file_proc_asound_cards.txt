@@ -1,0 +1,3 @@
+audio_info file=/proc/asound/cards
+ 0 [cherrytrailaud ]: cherrytrailaud - cherrytrailaud
+                      cherrytrailaud

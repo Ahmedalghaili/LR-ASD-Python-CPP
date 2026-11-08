@@ -1,0 +1,25 @@
+audio_info file=/proc/asound/card0/pcm3c/info
+card: 0
+device: 3
+subdevice: 0
+stream: CAPTURE
+id: Cherrytrail Voip (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+
+-- sub0/info --
+card: 0
+device: 3
+subdevice: 0
+stream: CAPTURE
+id: Cherrytrail Voip (*)
+name: 
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1

@@ -11,6 +11,7 @@
 #include <QStandardPaths>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QUdpSocket>
 #include "ThreadProcessImage.hpp"
 #include "ThreadPortAudio.hpp"
 #include "ThreadReceiveMessage.hpp"
@@ -136,6 +137,80 @@ protected:
     // ACTIVE_SPEAKER_DOA=zenbo: Zenbo's own DOA (all 4 microphones), turned
     // with moveBody; Zenbo must be kept listening for it to report.
     bool mZenboDoaRotate = false;
+    // ACTIVE_SPEAKER_DOA=respeaker: voice direction from the reSpeaker XVF3800
+    // array on Zenbo, sent by tests/respeaker_doa_sender.py as UDP text
+    // (degrees, + = left, 0 = Zenbo's front) to 127.0.0.1:kRespeakerDoaPort.
+    QUdpSocket *mRespeakerSocket = nullptr;
+    static constexpr quint16 kRespeakerDoaPort = 5006;
+    // The same array plugged into Zenbo's USB: the Zenbo app sends its raw
+    // angle ("respeaker_doa"); the front (array angle that is Zenbo's front,
+    // ~/SoloSeniorWatchRobot_build/respeaker_seeed_front.json or
+    // ACTIVE_SPEAKER_RESPEAKER_FRONT) and mirror are applied here. The angle
+    // jumps from reading to reading, so a direction is used only when, of the
+    // speech readings in the last kRespeakerWindowMs, at least kRespeakerVotes
+    // and kRespeakerVoteShare of them agree within kRespeakerSteadyDeg; their
+    // median is used. Readings within kRespeakerNoiseDeg of the array angle
+    // ACTIVE_SPEAKER_RESPEAKER_NOISE (Zenbo's own noise, seen at a fixed
+    // angle; unset = none) are dropped.
+    void onRespeakerReading(int angle, bool speech);
+    void addVoiceDoa(int doa);
+    int mRespeakerFront = 90;
+    bool mRespeakerMirror = false;
+    int mRespeakerNoise = -1;
+    std::deque<std::pair<int, double>> mRespeakerRecent;   // doa, time (ms)
+    int mRespeakerLastDoa = 1000;
+    double mRespeakerShownMs = -1e9;   // last voice_show sent to the app's panel
+    double mRespeakerBlockedLogMs = -1e9;   // rate limit for "voice_blocked" log lines
+    double mVoiceSkipLogMs = -1e9;          // rate limit for "voice_skipped" log lines
+    static constexpr double kRespeakerWindowMs = 2000;
+    static constexpr size_t kRespeakerVotes = 5;
+    static constexpr double kRespeakerVoteShare = 0.6;
+    static constexpr int kRespeakerSteadyDeg = 20;
+    static constexpr int kRespeakerNoiseDeg = 10;
+    // Zenbo's own motors sound like speech to the array (seen: a "voice" at
+    // the same array angle after every turn, so Zenbo kept turning), so the
+    // array is ignored while Zenbo moves and for kRespeakerAfterMoveMs after.
+    bool mRobotMoving = false;
+    double mRobotMoveEndMs = -1e9;
+    // 1 s: with the voice gate (VAD + CAM++) the motor noise is not taken
+    // for a voice anyway.
+    static constexpr double kRespeakerAfterMoveMs = 1000;
+    // ACTIVE_SPEAKER_VOICE_GATE=1: the audio of Zenbo's microphone is also
+    // sent to tests/voice_gate.py (UDP kVoiceGateAudioPort); =respeaker: the
+    // gate gets the reSpeaker's own audio over Wi-Fi from
+    // tests/respeaker_wifi_bridge.py instead. The gate answers on
+    // kVoiceGateResultPort "SPEECH <name> <score>" while a real voice talks
+    // (Silero VAD + CAM++ voiceprint) and "QUIET" after. A reSpeaker direction
+    // is then used only within kVoiceGateHoldMs of a SPEECH, and with
+    // ACTIVE_SPEAKER_KNOWN_ONLY=1 only for an enrolled person.
+    QUdpSocket *mVoiceGateAudio = nullptr;   // null: Zenbo's audio is not forwarded
+    bool mVoiceGateOn = false;
+    QUdpSocket *mVoiceGateResult = nullptr;
+    static constexpr quint16 kVoiceGateAudioPort = 5008;
+    static constexpr quint16 kVoiceGateResultPort = 5009;
+    static constexpr double kVoiceGateHoldMs = 600;
+    bool mVoiceGateKnownOnly = false;
+    std::atomic<double> mVoiceGateSpeechMs{-1e9};
+    // The gate applies only while it receives audio (its "ALIVE" within
+    // kVoiceGateAudioMs); without it the reSpeaker direction is used alone.
+    std::atomic<double> mVoiceGateAudioMs{-1e9};
+    static constexpr double kVoiceGateAudioMs = 3000;
+    std::mutex mVoiceGateMutex;
+    std::string mVoiceGateSpeaker = "?";
+    double mVoiceGateScore = 0;          // guarded by mVoiceGateMutex
+    // Last direction used for a voice (+ = left) and when, for the video overlay.
+    std::atomic<int> mRespeakerShownDoa{0};
+    std::atomic<double> mRespeakerDoaMs{-1e9};
+    void drawVoiceBanner(cv::Mat &preview);
+    // record_demo.sh: while ~/SoloSeniorWatchRobot_build/record_demo.path
+    // exists, the preview (with the overlays) is saved at kDemoFps to
+    // <path in the file>.avi.
+    void recordDemoFrame(const cv::Mat &preview);
+    cv::VideoWriter mDemoWriter;
+    std::string mDemoPath;
+    double mDemoNextMs = 0;
+    int mDemoTicks = 0;
+    static constexpr double kDemoFps = 15;
     // Zenbo's own listening moves the head (it looked down at the floor), so
     // in zenbo mode the head is put back to eye level after a voice turn and
     // while no face is seen.

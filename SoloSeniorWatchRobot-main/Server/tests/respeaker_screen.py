@@ -5,8 +5,12 @@ Shows where a voice comes from, computed on the PC from the 4 microphones
 with SRP-PHAT: a circle with four coloured sides and an arrow, the angle,
 a level bar per microphone and a "speaking" light.
 
+Also shows the array's own (Seeed built-in) direction, DOA_VALUE read over
+USB, as a red arrow, so the two can be compared.
+
 Keys: F = the current voice is the front (sets 0 deg)   M = mirror left/right
       O = next microphone order                          Q = quit
+      B = front for the Seeed arrow   N = mirror the Seeed arrow
 """
 import json
 import os
@@ -16,12 +20,14 @@ import time
 
 import cv2
 import numpy as np
+import usb.core
+import usb.util
 
 FS = 16000
 CH = 6
 BLOCK = 4096           # 256 ms per direction estimate
 C = 343.0
-R = 0.032              # assumed microphone circle radius (m)
+R = 0.0471             # mic circle radius (m): AEC_MIC_ARRAY_GEO, mics at (+-33.3, +-33.3) mm
 UP = 16
 DEVICE = "hw:CARD=Array,DEV=0"
 # Calibration shared with the robot helper (respeaker_doa_sender.py).
@@ -32,16 +38,19 @@ def load_calibration():
     try:
         with open(CALIBRATION) as f:
             c = json.load(f)
-        return int(c["front_offset_deg"]), bool(c["mirror"]), ORDERS.index(c["mic_order"])
+        b = c.get("builtin", {})
+        return (int(c["front_offset_deg"]), bool(c["mirror"]), ORDERS.index(c["mic_order"]),
+                int(b.get("front_offset_deg", 0)), bool(b.get("mirror", False)))
     except (OSError, ValueError, KeyError):
-        return 0, False, 0
+        return 0, False, 0, 0, False
 
 
-def save_calibration(offset, mirror, order_i):
+def save_calibration(offset, mirror, order_i, b_offset, b_mirror):
     os.makedirs(os.path.dirname(CALIBRATION), exist_ok=True)
     with open(CALIBRATION, "w") as f:
         json.dump({"front_offset_deg": offset, "mirror": mirror, "mic_order": ORDERS[order_i],
-                   "mic_radius_m": R}, f, indent=1)
+                   "mic_radius_m": R,
+                   "builtin": {"front_offset_deg": b_offset, "mirror": b_mirror}}, f, indent=1)
 
 NAMES = ["FRONT", "LEFT", "BEHIND", "RIGHT"]
 COLORS = [(230, 120, 40), (80, 170, 40), (200, 70, 140), (20, 130, 240)]   # BGR: blue, green, purple, orange
@@ -73,6 +82,35 @@ class Array:
             return self.samples[-n:].astype(np.float64) if len(self.samples) >= n else None
 
 
+class Builtin:
+    """The array's own direction: DOA_VALUE (resid 20, cmd 18) = angle (uint16)
+    and a speech flag, polled over USB."""
+    def __init__(self):
+        self.dev = usb.core.find(idVendor=0x2886, idProduct=0x001A)
+        self.angle, self.angle_t = None, 0
+        if self.dev is not None:
+            threading.Thread(target=self._poll, daemon=True).start()
+
+    def _read(self, resid, cmd, length):
+        t = usb.util.CTRL_IN | usb.util.CTRL_TYPE_VENDOR | usb.util.CTRL_RECIPIENT_DEVICE
+        for _ in range(50):
+            r = bytes(self.dev.ctrl_transfer(t, 0, 0x80 | cmd, resid, length + 1, 1000))
+            if r[0] == 0:           # status byte: 0 = ok, otherwise retry
+                return r[1:]
+            time.sleep(0.01)
+        return None
+
+    def _poll(self):
+        while True:
+            try:
+                d = self._read(20, 18, 4)
+            except usb.core.USBError:
+                d = None
+            if d is not None and d[2]:          # only while the array hears speech
+                self.angle, self.angle_t = d[0] | d[1] << 8, time.time()
+            time.sleep(0.1)
+
+
 def srp(raw, order):
     """Direction (deg, + = counter-clockwise from mic 0) and peak strength."""
     phis = np.radians(np.array([0, 90, 180, 270])[np.argsort(order)])
@@ -95,7 +133,8 @@ def srp(raw, order):
 
 def main():
     arr = Array()
-    offset, mirror, order_i = load_calibration()
+    builtin = Builtin()
+    offset, mirror, order_i, b_offset, b_mirror = load_calibration()
     noise = None
     angle, angle_t, strength = None, 0, 0
     history = []
@@ -142,6 +181,13 @@ def main():
             t = np.radians(angle)
             end = (int(cx - r * np.sin(t)), int(cy - r * np.cos(t)))   # + = left (counter-clockwise)
             cv2.arrowedLine(img, (cx, cy), end, (30, 30, 30) if fresh else (160, 160, 160), 8, tipLength=0.12)
+        b_angle = None
+        if builtin.angle is not None:
+            b_angle = int(((-builtin.angle if b_mirror else builtin.angle) - b_offset) % 360)
+            b_fresh = time.time() - builtin.angle_t < 1.5
+            t = np.radians(b_angle)
+            end = (int(cx - r * 0.85 * np.sin(t)), int(cy - r * 0.85 * np.cos(t)))
+            cv2.arrowedLine(img, (cx, cy), end, (40, 40, 220) if b_fresh else (170, 170, 230), 5, tipLength=0.12)
 
         # Right side: text and level bars.
         x = 620
@@ -153,8 +199,17 @@ def main():
         cv2.putText(img, txt, (x, 170), cv2.FONT_HERSHEY_SIMPLEX, 1.2,
                     COLORS[side] if side is not None else (120, 120, 120), 3)
         cv2.putText(img, f"last: {history}", (x, 205), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (80, 80, 80), 1)
+        if builtin.dev is None:
+            b_txt = "Seeed (red arrow): array not found"
+        elif b_angle is None:
+            b_txt = "Seeed (red arrow): no speech yet"
+        else:
+            bd = (b_angle + 180) % 360 - 180
+            b_side = 0 if abs(bd) <= 45 else 1 if 45 < bd < 135 else 3 if -135 < bd < -45 else 2
+            b_txt = f"Seeed (red arrow): {NAMES[b_side]}  {b_angle} deg"
+        cv2.putText(img, b_txt, (x, 235), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (40, 40, 200), 2)
         for i, lv in enumerate(levels):
-            y = 250 + i * 45
+            y = 260 + i * 45
             frac = min(max((lv + 70) / 70, 0), 1)
             cv2.putText(img, f"mic {i + 1}", (x, y + 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (60, 60, 60), 1)
             cv2.rectangle(img, (x + 80, y), (x + 380, y + 24), (225, 225, 225), -1)
@@ -165,6 +220,7 @@ def main():
                     (x, 450), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (90, 90, 90), 1)
         for k, line in enumerate(["F: you are in front and talking -> set front",
                                   "M: mirror left/right    O: next mic order",
+                                  "B / N: front / mirror for the red Seeed arrow",
                                   "Q: quit"]):
             cv2.putText(img, line, (x, 500 + k * 32), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (30, 110, 200), 2)
         cv2.imshow("reSpeaker voice direction", img)
@@ -178,8 +234,12 @@ def main():
             mirror = not mirror
         if key in (ord('o'), ord('O')):
             order_i = (order_i + 1) % len(ORDERS)
-        if key in (ord('f'), ord('F'), ord('m'), ord('M'), ord('o'), ord('O')):
-            save_calibration(offset, mirror, order_i)
+        if key in (ord('b'), ord('B')) and builtin.angle is not None:
+            b_offset = (-builtin.angle if b_mirror else builtin.angle) % 360
+        if key in (ord('n'), ord('N')):
+            b_mirror = not b_mirror
+        if key in (ord(c) for c in "fFmMoObBnN"):
+            save_calibration(offset, mirror, order_i, b_offset, b_mirror)
     arr.proc.terminate()
     cv2.destroyAllWindows()
 
