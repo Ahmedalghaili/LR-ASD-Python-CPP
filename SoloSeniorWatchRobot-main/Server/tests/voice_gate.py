@@ -40,9 +40,12 @@ SPEAKERS = HOME + "/SoloSeniorWatchRobot_build/speaker/speakers"
 ENROLL_REQUEST = HOME + "/SoloSeniorWatchRobot_build/speaker/enroll_request"
 # On the robot an enrolled voice scored 0.42-0.82, other people 0.05-0.32.
 THRESHOLD = float(os.environ.get("VOICE_GATE_THRESHOLD", "0.38"))
-ID_MIN_S = 1.5          # speech needed for a voiceprint
+ID_MIN_S = float(os.environ.get("VOICE_GATE_MIN_S", "0.8"))  # speech needed for a voiceprint
 ID_MAX_S = 3.0          # the voiceprint uses at most the last 3 s
-ID_EVERY_S = 0.5
+ID_EVERY_S = 0.2        # a voiceprint takes about 20 ms
+# A pause shorter than this keeps the same talk: its speech and name are kept,
+# so a sentence with small pauses is not identified again from zero.
+KEEP_S = 1.0
 REPORT_EVERY_S = 0.2
 ENROLL_SECONDS = 10
 
@@ -142,7 +145,7 @@ def run():
     print(f"voice gate: {len(people)} enrolled ({', '.join(people) or 'nobody'}), "
           f"threshold {THRESHOLD}; audio on UDP {AUDIO_PORT}, results to UDP {GATE_PORT}", flush=True)
     sock, out = audio_socket(), socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    speech, speaking = [], False
+    speech, speaking, quiet_since, talk_start = [], False, 0.0, 0.0
     name, score, last_id, last_report, last_alive, seen_audio = "?", 0.0, 0.0, 0.0, 0.0, False
     enrolling, enroll_audio, enroll_shown, last_check = None, [], -1, 0.0
     while True:
@@ -171,8 +174,13 @@ def run():
             out.sendto(b"ALIVE", ("127.0.0.1", GATE_PORT))
         if vad.is_speech_detected():
             if not speaking:
-                speaking, speech, name, score = True, [], "?", 0.0
+                speaking = True
+                if now - quiet_since > KEEP_S:
+                    speech, name, score, talk_start = [], "?", 0.0, now
             speech.append(x)
+            speech_s = sum(len(s) for s in speech) / RATE
+            while speech_s - len(speech[0]) / RATE >= ID_MAX_S:   # keep only the last 3 s
+                speech_s -= len(speech.pop(0)) / RATE
             if enrolling:
                 enroll_audio.append(x)
                 heard = int(sum(len(s) for s in enroll_audio) / RATE)
@@ -182,21 +190,21 @@ def run():
                 if heard >= ENROLL_SECONDS:
                     save_person(extractor, enrolling, np.concatenate(enroll_audio))
                     people, enrolling = load_speakers(), None
-            n = sum(len(s) for s in speech)
-            if n >= ID_MIN_S * RATE and now - last_id >= ID_EVERY_S:
+            if speech_s >= ID_MIN_S and now - last_id >= ID_EVERY_S:
                 last_id = now
                 e = voiceprint(extractor, np.concatenate(speech)[-int(ID_MAX_S * RATE):])
                 best = best_match(people, e)
                 score = best[1] if best else 0.0
                 new = best[0] if best and score >= THRESHOLD else "unknown"
                 if new != name:
-                    print(time.strftime("%H:%M:%S"), f"voice: {new} (score {score:.2f})", flush=True)
+                    print(time.strftime("%H:%M:%S"), f"voice: {new} (score {score:.2f}), "
+                          f"{now - talk_start:.1f} s after the speech started", flush=True)
                 name = new
             if now - last_report >= REPORT_EVERY_S:
                 last_report = now
                 out.sendto(f"SPEECH {name} {score:.2f}".encode(), ("127.0.0.1", GATE_PORT))
         elif speaking:
-            speaking = False
+            speaking, quiet_since = False, now
             out.sendto(b"QUIET", ("127.0.0.1", GATE_PORT))
             print(time.strftime("%H:%M:%S"), "quiet", flush=True)
 
